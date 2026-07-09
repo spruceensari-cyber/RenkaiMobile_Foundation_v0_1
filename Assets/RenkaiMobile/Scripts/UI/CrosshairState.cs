@@ -1,0 +1,1 @@
+namespace RenkaiMobile.UI { public sealed class CrosshairState { public float Spread=1f; public bool HitConfirmed; public bool HeadshotConfirmed; } }
