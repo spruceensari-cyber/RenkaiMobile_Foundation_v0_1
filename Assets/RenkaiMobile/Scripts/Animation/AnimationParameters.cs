@@ -1,0 +1,1 @@
+namespace RenkaiMobile.Animation { public static class AnimationParameters { public const string Speed="Speed"; public const string Grounded="Grounded"; public const string Crouch="Crouch"; public const string Reload="Reload"; public const string Ability="Ability"; } }
