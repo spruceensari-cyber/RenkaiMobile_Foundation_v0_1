@@ -1,0 +1,32 @@
+{
+  "project": "Renkai Mobile",
+  "foundation_version": "0.1",
+  "platforms": [
+    "iOS",
+    "Android"
+  ],
+  "core_mode": "5v5 tactical hero shooter",
+  "objective": "Spirit Core plant/defuse",
+  "milestones": [
+    {
+      "version": "0.1",
+      "goal": "local mobile controls, hitscan, health, round skeleton"
+    },
+    {
+      "version": "0.2",
+      "goal": "complete HUD, weapon inventory, recoil/spray, bots"
+    },
+    {
+      "version": "0.3",
+      "goal": "plant/defuse interactions, economy, buy menu"
+    },
+    {
+      "version": "0.4",
+      "goal": "network sessions and authoritative match prototype"
+    },
+    {
+      "version": "0.5",
+      "goal": "Kuroha vertical slice with one polished map"
+    }
+  ]
+}

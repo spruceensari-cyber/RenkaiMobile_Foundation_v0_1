@@ -1,0 +1,28 @@
+name: Renkai Structure Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  validate-project-structure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required Renkai folders
+        shell: bash
+        run: |
+          test -d Assets/Renkai/Scripts
+          test -f README_RENKAI_FOUNDATION.md
+          test -f RENKAI_ROADMAP.json
+
+      - name: Reject Unity generated folders in Git
+        shell: bash
+        run: |
+          if git ls-files | grep -E '^(Library|Temp|Logs|UserSettings|Build|Builds)/' ; then
+            echo "Unity generated folders must not be committed."
+            exit 1
+          fi
