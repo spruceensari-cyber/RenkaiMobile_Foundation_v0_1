@@ -1,0 +1,1 @@
+namespace RenkaiMobile.Core { public enum BuildChannel { Development=0, Test=1, Release=2 } }
