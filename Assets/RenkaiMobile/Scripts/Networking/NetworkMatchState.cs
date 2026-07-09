@@ -1,0 +1,1 @@
+namespace RenkaiMobile.Networking { public sealed class NetworkMatchState { public int AttackersScore; public int DefendersScore; public int RoundIndex; public double ServerTime; public bool ObjectivePlanted; } }
