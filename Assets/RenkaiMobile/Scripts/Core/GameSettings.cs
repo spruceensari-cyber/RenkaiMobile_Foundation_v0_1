@@ -1,0 +1,1 @@
+using UnityEngine; namespace RenkaiMobile.Core { [CreateAssetMenu(menuName="Renkai Mobile/Game Settings")] public sealed class GameSettings : ScriptableObject { public int TargetFrameRate=60; public float FieldOfView=86f; public float LookSensitivity=1f; public bool EnableHaptics=true; } }
