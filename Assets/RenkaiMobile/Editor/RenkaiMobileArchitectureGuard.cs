@@ -8,7 +8,15 @@ namespace RenkaiMobile.EditorTools
     public static class RenkaiMobileArchitectureGuard
     {
         private const string Root = "Assets/RenkaiMobile";
-        private const string ForbiddenUsing = "using Renkai.";
+        private static readonly string[] ForbiddenTokens =
+        {
+            "using Renkai.",
+            "Renkai.Core.",
+            "Renkai.Combat.",
+            "Renkai.Rounds.",
+            "Renkai.Movement.",
+            "Renkai.Input."
+        };
 
         [MenuItem("Renkai Mobile/Validate Mobile Isolation")]
         public static void Validate()
@@ -25,8 +33,12 @@ namespace RenkaiMobile.EditorTools
             {
                 string normalized = file.Replace('\\', '/');
                 string text = File.ReadAllText(file);
-                if (text.Contains(ForbiddenUsing))
-                    violations.Add(normalized);
+                foreach (string token in ForbiddenTokens)
+                {
+                    if (!text.Contains(token)) continue;
+                    violations.Add(normalized + "  →  " + token);
+                    break;
+                }
             }
 
             if (violations.Count == 0)
