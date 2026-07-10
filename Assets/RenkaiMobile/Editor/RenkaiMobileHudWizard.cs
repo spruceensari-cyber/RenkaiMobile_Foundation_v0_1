@@ -17,6 +17,12 @@ namespace RenkaiMobile.EditorTools
         [MenuItem("Renkai Mobile/Add Mobile Combat HUD To Current Scene")]
         public static void BuildHud()
         {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                EditorUtility.DisplayDialog("Renkai Mobile", "Play Mode'u kapat ve HUD kurulumunu tekrar çalıştır.", "OK");
+                return;
+            }
+
             var player = GameObject.Find("Player");
             if (player == null)
             {
@@ -41,6 +47,10 @@ namespace RenkaiMobile.EditorTools
             SetObjectReference(ads, "gameplayCamera", camera);
 
             var router = player.GetComponent<MobileInputRouter>() ?? player.AddComponent<MobileInputRouter>();
+            if (player.GetComponent<EditorFpsDebugInput>() == null)
+                player.AddComponent<EditorFpsDebugInput>();
+            if (weapon.GetComponent<WeaponFeedbackController>() == null)
+                weapon.gameObject.AddComponent<WeaponFeedbackController>();
 
             var canvasGo = new GameObject("MobileHUD", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             var canvas = canvasGo.GetComponent<Canvas>();
@@ -68,10 +78,19 @@ namespace RenkaiMobile.EditorTools
             so.FindProperty("weapon").objectReferenceValue = weapon;
             so.ApplyModifiedPropertiesWithoutUndo();
 
+            var debug = player.GetComponent<EditorFpsDebugInput>();
+            var debugSo = new SerializedObject(debug);
+            debugSo.FindProperty("motor").objectReferenceValue = motor;
+            debugSo.FindProperty("yawRoot").objectReferenceValue = player.transform;
+            debugSo.FindProperty("pitchRoot").objectReferenceValue = pitchRoot;
+            debugSo.FindProperty("weapon").objectReferenceValue = weapon;
+            debugSo.FindProperty("ads").objectReferenceValue = ads;
+            debugSo.ApplyModifiedPropertiesWithoutUndo();
+
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorSceneManager.SaveOpenScenes();
             Selection.activeGameObject = canvasGo;
-            EditorUtility.DisplayDialog("Renkai Mobile", "Mobil HUD ve combat kontrolleri sahneye eklendi.", "OK");
+            EditorUtility.DisplayDialog("Renkai Mobile", "Mobil HUD, Editor test kontrolleri ve combat feedback sahneye eklendi.", "OK");
         }
 
         private static HitscanWeapon CreateWeapon(GameObject player, Camera camera, MobileFpsMotor motor)
