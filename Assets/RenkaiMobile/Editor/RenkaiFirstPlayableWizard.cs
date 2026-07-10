@@ -12,6 +12,12 @@ namespace RenkaiMobile.EditorTools
         [MenuItem("Renkai Mobile/Build First Playable Scene")]
         public static void BuildFirstPlayableScene()
         {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                EditorUtility.DisplayDialog("Renkai Mobile", "Play Mode'u kapat ve komutu tekrar çalıştır.", "OK");
+                return;
+            }
+
             if (!EditorUtility.DisplayDialog("Renkai Mobile", "Create a new First Playable test scene? Unsaved scene changes may be lost.", "Create", "Cancel"))
                 return;
 
