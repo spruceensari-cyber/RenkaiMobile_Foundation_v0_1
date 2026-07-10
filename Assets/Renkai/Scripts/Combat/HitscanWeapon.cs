@@ -54,7 +54,7 @@ namespace Renkai.Combat
 
             if (Physics.Raycast(origin, direction, out RaycastHit hit, definition.range, hitMask, QueryTriggerInteraction.Ignore))
             {
-                bool headshot = hit.collider.CompareTag("Head");
+                bool headshot = hit.collider.GetComponent<HeadshotZone>() != null;
                 float amount = headshot ? definition.headDamage : definition.bodyDamage;
 
                 IDamageable damageable = hit.collider.GetComponentInParent<IDamageable>();
