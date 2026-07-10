@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using RenkaiMobile.Abilities;
 using RenkaiMobile.Bots;
 using RenkaiMobile.Combat;
+using RenkaiMobile.Core;
 using RenkaiMobile.Objective;
 using RenkaiMobile.UI;
 
@@ -28,7 +29,7 @@ namespace RenkaiMobile.EditorTools
                 return;
             }
 
-            var ability = player.GetComponent<AbilityRuntimeController>() ?? player.AddComponent<AbilityRuntimeController>();
+            AbilityRuntimeController ability = player.GetComponent<AbilityRuntimeController>() ?? player.AddComponent<AbilityRuntimeController>();
             if (player.GetComponent<AbilityVfxPulse>() == null) player.AddComponent<AbilityVfxPulse>();
             if (player.GetComponent<WeaponInventoryController>() == null) player.AddComponent<WeaponInventoryController>();
             if (player.GetComponent<DeterministicRecoilPattern>() == null) player.AddComponent<DeterministicRecoilPattern>();
@@ -40,17 +41,18 @@ namespace RenkaiMobile.EditorTools
 
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorSceneManager.SaveOpenScenes();
-            EditorUtility.DisplayDialog("Renkai Mobile", "Combat polish eklendi: buy buttons, weapon inventory, recoil pattern, cover bots, plant bridge, ability VFX ve mobile ability buttons.", "OK");
+            EditorUtility.DisplayDialog("Renkai Mobile", "Combat polish eklendi: buy buttons, weapon inventory, recoil pattern, cover bots, objective animation bridge, ability VFX ve mobile ability buttons.", "OK");
         }
 
         private static void AddCoverBots()
         {
-            var teams = Object.FindObjectsByType<Renkai.Core.TeamMember>(FindObjectsSortMode.None);
-            foreach (var member in teams)
+            MobileTeamMember[] teams = Object.FindObjectsByType<MobileTeamMember>(FindObjectsSortMode.None);
+            foreach (MobileTeamMember member in teams)
             {
                 if (member == null || member.gameObject.name == "Player") continue;
-                if (member.GetComponent<CoverSeekingBot>() == null)
-                    member.gameObject.AddComponent<CoverSeekingBot>();
+                if (member.GetComponent<BotNavigationAgent>() == null) member.gameObject.AddComponent<BotNavigationAgent>();
+                if (member.GetComponent<BotNavigationIntentController>() == null) member.gameObject.AddComponent<BotNavigationIntentController>();
+                if (member.GetComponent<CoverSeekingBot>() == null) member.gameObject.AddComponent<CoverSeekingBot>();
             }
         }
 
