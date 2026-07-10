@@ -8,15 +8,25 @@ namespace RenkaiMobile.VFX
     {
         [SerializeField] private MobileRifleController rifle;
         [SerializeField] private Transform muzzle;
+        [SerializeField] private MobileVfxPool pool;
+        [SerializeField] private MobileWeaponVfxPoolProfile poolProfile;
         [SerializeField] private float muzzleFlashSeconds = 0.045f;
         [SerializeField] private float tracerSeconds = 0.06f;
         [SerializeField] private float impactSeconds = 0.22f;
-        [SerializeField] private Color muzzleColor = new Color(0.2f, 0.9f, 1f, 1f);
-        [SerializeField] private Color impactColor = new Color(0.8f, 0.2f, 1f, 1f);
 
         private void Awake()
         {
             if (rifle == null) rifle = GetComponent<MobileRifleController>();
+            if (pool == null) pool = FindFirstObjectByType<MobileVfxPool>();
+        }
+
+        private void Start()
+        {
+            if (pool == null || poolProfile == null) return;
+            pool.Prewarm("muzzle", poolProfile.muzzlePrefab, poolProfile.muzzlePrewarm);
+            pool.Prewarm("tracer", poolProfile.tracerPrefab, poolProfile.tracerPrewarm);
+            pool.Prewarm("impact", poolProfile.impactPrefab, poolProfile.impactPrewarm);
+            pool.Prewarm("headshot", poolProfile.headshotPrefab, poolProfile.headshotPrewarm);
         }
 
         private void OnEnable()
@@ -31,72 +41,42 @@ namespace RenkaiMobile.VFX
 
         private void OnShotFired(MobileWeaponShot shot)
         {
+            if (pool == null || poolProfile == null) return;
             Vector3 origin = muzzle != null ? muzzle.position : shot.Origin;
-            StartCoroutine(MuzzleFlash(origin));
-            StartCoroutine(Tracer(origin, shot.EndPoint));
-            if (shot.Hit) StartCoroutine(Impact(shot.EndPoint, shot.Headshot));
+            SpawnTimed("muzzle", poolProfile.muzzlePrefab, origin, Quaternion.identity, muzzleFlashSeconds);
+            SpawnTracer(origin, shot.EndPoint);
+            if (shot.Hit)
+                SpawnTimed(shot.Headshot ? "headshot" : "impact",
+                    shot.Headshot ? poolProfile.headshotPrefab : poolProfile.impactPrefab,
+                    shot.EndPoint,
+                    Quaternion.identity,
+                    impactSeconds);
         }
 
-        private IEnumerator MuzzleFlash(Vector3 position)
+        private void SpawnTracer(Vector3 start, Vector3 end)
         {
-            GameObject flash = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            flash.name = "Mobile_MuzzleFlash";
-            flash.transform.position = position;
-            flash.transform.localScale = Vector3.one * 0.12f;
-            Collider c = flash.GetComponent<Collider>();
-            if (c != null) Destroy(c);
-            SetColor(flash.GetComponent<Renderer>(), muzzleColor);
-            yield return new WaitForSeconds(muzzleFlashSeconds);
-            if (flash != null) Destroy(flash);
-        }
-
-        private IEnumerator Tracer(Vector3 start, Vector3 end)
-        {
-            GameObject tracer = new GameObject("Mobile_Tracer");
-            LineRenderer line = tracer.AddComponent<LineRenderer>();
-            line.positionCount = 2;
-            line.SetPosition(0, start);
-            line.SetPosition(1, end);
-            line.startWidth = 0.025f;
-            line.endWidth = 0.008f;
-            Shader shader = Shader.Find("Sprites/Default");
-            line.material = new Material(shader);
-            line.startColor = muzzleColor;
-            line.endColor = new Color(muzzleColor.r, muzzleColor.g, muzzleColor.b, 0f);
-            yield return new WaitForSeconds(tracerSeconds);
-            if (tracer != null) Destroy(tracer);
-        }
-
-        private IEnumerator Impact(Vector3 position, bool headshot)
-        {
-            GameObject impact = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            impact.name = headshot ? "Headshot_Fracture" : "Impact_Fracture";
-            impact.transform.position = position;
-            impact.transform.localScale = Vector3.one * (headshot ? 0.18f : 0.1f);
-            Collider c = impact.GetComponent<Collider>();
-            if (c != null) Destroy(c);
-            SetColor(impact.GetComponent<Renderer>(), headshot ? Color.white : impactColor);
-
-            float t = 0f;
-            Vector3 start = impact.transform.localScale;
-            while (impact != null && t < impactSeconds)
+            MobileVfxPoolItem item = pool.Spawn("tracer", poolProfile.tracerPrefab, start, Quaternion.identity);
+            if (item == null) return;
+            LineRenderer line = item.GetComponentInChildren<LineRenderer>();
+            if (line != null)
             {
-                t += Time.deltaTime;
-                impact.transform.localScale = Vector3.Lerp(start, start * 2.4f, t / impactSeconds);
-                yield return null;
+                line.positionCount = 2;
+                line.SetPosition(0, start);
+                line.SetPosition(1, end);
             }
-            if (impact != null) Destroy(impact);
+            StartCoroutine(ReturnLater(item, tracerSeconds));
         }
 
-        private static void SetColor(Renderer renderer, Color color)
+        private void SpawnTimed(string key, GameObject prefab, Vector3 position, Quaternion rotation, float lifetime)
         {
-            if (renderer == null) return;
-            Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
-            if (shader == null) shader = Shader.Find("Unlit/Color");
-            Material material = new Material(shader);
-            if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
-            if (material.HasProperty("_Color")) material.SetColor("_Color", color);
-            renderer.material = material;
+            MobileVfxPoolItem item = pool.Spawn(key, prefab, position, rotation);
+            if (item != null) StartCoroutine(ReturnLater(item, lifetime));
+        }
+
+        private static IEnumerator ReturnLater(MobileVfxPoolItem item, float seconds)
+        {
+            yield return new WaitForSeconds(seconds);
+            item?.ReturnToPool();
         }
     }
 }
