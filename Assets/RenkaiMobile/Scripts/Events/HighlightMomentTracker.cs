@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using RenkaiMobile.Combat;
 
 namespace RenkaiMobile.Events
 {
@@ -102,7 +103,7 @@ namespace RenkaiMobile.Events
 
         private void Record(HighlightMomentType type, GameObject actor)
         {
-            string actorId = actor != null && actor.TryGetComponent(out Combat.MobileCombatantIdentity identity)
+            string actorId = actor != null && actor.TryGetComponent(out MobileCombatantIdentity identity)
                 ? identity.CombatantId
                 : actor != null ? actor.name : "unknown";
 
