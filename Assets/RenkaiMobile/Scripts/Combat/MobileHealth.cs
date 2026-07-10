@@ -8,6 +8,7 @@ namespace RenkaiMobile.Combat
         [SerializeField, Min(1f)] private float maxHealth = 100f;
 
         public event Action<float, float> Changed;
+        public event Action<MobileDamageInfo> Damaged;
         public event Action<MobileDamageInfo> Died;
 
         public float Current { get; private set; }
@@ -24,6 +25,7 @@ namespace RenkaiMobile.Combat
             if (!IsAlive || damage.Amount <= 0f) return;
             Current = Mathf.Max(0f, Current - damage.Amount);
             Changed?.Invoke(Current, maxHealth);
+            Damaged?.Invoke(damage);
             if (Current <= 0f) Died?.Invoke(damage);
         }
 
