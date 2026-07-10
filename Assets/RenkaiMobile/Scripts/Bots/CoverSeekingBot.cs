@@ -6,17 +6,27 @@ namespace RenkaiMobile.Bots
     [RequireComponent(typeof(MobileHealth))]
     public sealed class CoverSeekingBot : MonoBehaviour
     {
-        [SerializeField] private string coverNamePrefix = "Cover_";
+        [SerializeField] private CoverRegistry registry;
         [SerializeField] private float seekHealthFraction = 0.55f;
         [SerializeField] private float moveSpeed = 2.8f;
         [SerializeField] private float stopDistance = 1.25f;
         [SerializeField] private float reassessInterval = 1.2f;
+        [SerializeField] private float searchRadius = 28f;
 
         private MobileHealth health;
-        private Transform coverTarget;
+        private CoverPoint coverTarget;
         private float nextReassess;
 
-        private void Awake() => health = GetComponent<MobileHealth>();
+        private void Awake()
+        {
+            health = GetComponent<MobileHealth>();
+            if (registry == null) registry = FindFirstObjectByType<CoverRegistry>();
+        }
+
+        private void OnDisable()
+        {
+            coverTarget?.Release(gameObject);
+        }
 
         private void Update()
         {
@@ -26,11 +36,11 @@ namespace RenkaiMobile.Bots
             if (coverTarget == null || Time.time >= nextReassess)
             {
                 nextReassess = Time.time + reassessInterval;
-                coverTarget = FindNearestCover();
+                SelectCover();
             }
 
             if (coverTarget == null) return;
-            Vector3 delta = coverTarget.position - transform.position;
+            Vector3 delta = coverTarget.transform.position - transform.position;
             delta.y = 0f;
             if (delta.magnitude <= stopDistance) return;
 
@@ -43,22 +53,27 @@ namespace RenkaiMobile.Bots
             }
         }
 
-        private Transform FindNearestCover()
+        private void SelectCover()
         {
-            Transform best = null;
-            float bestSqr = float.MaxValue;
-            GameObject[] all = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
-            foreach (GameObject candidate in all)
+            if (registry == null) return;
+            MobileHealth[] all = FindObjectsByType<MobileHealth>(FindObjectsSortMode.None);
+            Vector3 threat = transform.position + transform.forward * 10f;
+            float bestEnemySqr = float.MaxValue;
+            foreach (MobileHealth candidate in all)
             {
-                if (candidate == null || !candidate.name.StartsWith(coverNamePrefix)) continue;
+                if (candidate == null || candidate == health || !candidate.IsAlive) continue;
                 float sqr = (candidate.transform.position - transform.position).sqrMagnitude;
-                if (sqr < bestSqr)
+                if (sqr < bestEnemySqr)
                 {
-                    bestSqr = sqr;
-                    best = candidate.transform;
+                    bestEnemySqr = sqr;
+                    threat = candidate.transform.position;
                 }
             }
-            return best;
+
+            coverTarget?.Release(gameObject);
+            CoverPoint next = registry.FindBest(transform.position, threat, searchRadius);
+            if (next != null && next.TryOccupy(gameObject)) coverTarget = next;
+            else coverTarget = null;
         }
     }
 }
