@@ -1,10 +1,9 @@
 using UnityEngine;
-using Renkai.Combat;
-using Renkai.Core;
+using RenkaiMobile.Combat;
 
 namespace RenkaiMobile.Bots
 {
-    [RequireComponent(typeof(Health), typeof(TeamMember))]
+    [RequireComponent(typeof(MobileHealth))]
     public sealed class CoverSeekingBot : MonoBehaviour
     {
         [SerializeField] private string coverNamePrefix = "Cover_";
@@ -13,14 +12,11 @@ namespace RenkaiMobile.Bots
         [SerializeField] private float stopDistance = 1.25f;
         [SerializeField] private float reassessInterval = 1.2f;
 
-        private Health health;
+        private MobileHealth health;
         private Transform coverTarget;
         private float nextReassess;
 
-        private void Awake()
-        {
-            health = GetComponent<Health>();
-        }
+        private void Awake() => health = GetComponent<MobileHealth>();
 
         private void Update()
         {
