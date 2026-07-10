@@ -1,5 +1,6 @@
 using UnityEngine;
 using Renkai.Combat;
+using Renkai.Input;
 using Renkai.Movement;
 using RenkaiMobile.Combat;
 
@@ -16,10 +17,25 @@ namespace RenkaiMobile.Input
         [SerializeField, Range(30f, 89f)] private float pitchLimit = 85f;
 
         private float pitch;
+        private MobileInputRouter unifiedRouter;
+
+        private void Awake()
+        {
+            unifiedRouter = GetComponent<MobileInputRouter>();
+        }
 
         private void Update()
         {
 #if UNITY_EDITOR || UNITY_STANDALONE
+            // MobileInputRouter now handles desktop and mobile input in one place.
+            // Keep this component only as a legacy fallback for older scenes.
+            if (unifiedRouter != null && unifiedRouter.enabled)
+            {
+                if (ads != null)
+                    ads.SetAds(UnityEngine.Input.GetMouseButton(1));
+                return;
+            }
+
             if (motor != null)
             {
                 Vector2 move = new Vector2(UnityEngine.Input.GetAxisRaw("Horizontal"), UnityEngine.Input.GetAxisRaw("Vertical"));
