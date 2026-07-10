@@ -28,6 +28,7 @@ namespace RenkaiMobile.Weapons
         [SerializeField] private Transform muzzle;
         [SerializeField] private MobileAdsController adsController;
         [SerializeField] private MobileWeaponShotSignal shotSignal;
+        [SerializeField] private MobileDamagePolicy damagePolicy;
         [SerializeField] private LayerMask hitMask = ~0;
 
         public event Action<int, int> AmmoChanged;
@@ -45,6 +46,7 @@ namespace RenkaiMobile.Weapons
             if (aimCamera == null) aimCamera = Camera.main;
             if (adsController == null) adsController = GetComponentInParent<MobileAdsController>();
             if (shotSignal == null) shotSignal = GetComponentInParent<MobileWeaponShotSignal>();
+            if (damagePolicy == null) damagePolicy = FindFirstObjectByType<MobileDamagePolicy>();
             AmmoInMagazine = profile != null ? profile.magazineSize : 0;
         }
 
@@ -73,10 +75,9 @@ namespace RenkaiMobile.Weapons
                 hitSomething = true;
                 endPoint = hit.point;
                 MobileHealth health = hit.collider.GetComponentInParent<MobileHealth>();
-                if (health != null)
+                if (health != null && (damagePolicy == null || damagePolicy.CanDamage(gameObject, health.gameObject)))
                 {
-                    string colliderName = hit.collider.name.ToLowerInvariant();
-                    headshot = colliderName.Contains("head");
+                    headshot = hit.collider.name.ToLowerInvariant().Contains("head");
                     float damage = headshot ? profile.headDamage : profile.bodyDamage;
                     health.ApplyDamage(new MobileDamageInfo(damage, hit.point, direction, gameObject, headshot));
                 }
