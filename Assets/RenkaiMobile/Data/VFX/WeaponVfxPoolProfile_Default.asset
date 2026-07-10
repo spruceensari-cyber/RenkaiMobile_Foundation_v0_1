@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20129cee257b319489a24d9d1df638ec, type: 3}
+  m_Name: WeaponVfxPoolProfile_Default
+  m_EditorClassIdentifier: Assembly-CSharp::RenkaiMobile.VFX.MobileWeaponVfxPoolProfile
+  muzzlePrefab: {fileID: 7201227714238801832, guid: d1a2b02d38d1ead41ba9c26e418ba414, type: 3}
+  tracerPrefab: {fileID: 122859114663380536, guid: b82289875368f2944b3863b23dbd705e, type: 3}
+  impactPrefab: {fileID: 5486974402757520678, guid: 221c7dc9940b3ec4787016f6c891dbcd, type: 3}
+  headshotPrefab: {fileID: 1779528752511352591, guid: 7cc07469bc66dc84ca8f5e375ce2889b, type: 3}
+  muzzlePrewarm: 8
+  tracerPrewarm: 12
+  impactPrewarm: 16
+  headshotPrewarm: 6
