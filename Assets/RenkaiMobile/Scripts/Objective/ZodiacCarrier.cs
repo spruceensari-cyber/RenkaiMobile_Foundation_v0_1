@@ -72,6 +72,12 @@ namespace RenkaiMobile.Objective
             }
         }
 
+        public void RemoveZodiac()
+        {
+            HasZodiac = false;
+            EndInteract();
+        }
+
         private void OnTriggerEnter(Collider other)
         {
             ZodiacZone zone = other.GetComponent<ZodiacZone>();
