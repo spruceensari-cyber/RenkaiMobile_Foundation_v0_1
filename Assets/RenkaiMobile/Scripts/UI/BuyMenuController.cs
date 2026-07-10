@@ -1,13 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
-using Renkai.Rounds;
 using RenkaiMobile.Economy;
+using RenkaiMobile.Rounds;
 
 namespace RenkaiMobile.UI
 {
     public sealed class BuyMenuController : MonoBehaviour
     {
-        [SerializeField] private RoundManager roundManager;
+        [SerializeField] private MobileRoundManager roundManager;
         [SerializeField] private BuyPhaseController buyController;
         [SerializeField] private CreditWallet wallet;
         [SerializeField] private GameObject panel;
@@ -16,7 +16,7 @@ namespace RenkaiMobile.UI
 
         private void Awake()
         {
-            if (roundManager == null) roundManager = FindFirstObjectByType<RoundManager>();
+            if (roundManager == null) roundManager = FindFirstObjectByType<MobileRoundManager>();
             if (buyController == null) buyController = FindFirstObjectByType<BuyPhaseController>();
             if (wallet == null && buyController != null) wallet = buyController.GetComponent<CreditWallet>();
         }
@@ -36,7 +36,7 @@ namespace RenkaiMobile.UI
 
         public void Toggle()
         {
-            if (panel == null || roundManager == null || roundManager.Phase != RoundPhase.Buy) return;
+            if (panel == null || roundManager == null || roundManager.Phase != MobileRoundPhase.Buy) return;
             panel.SetActive(!panel.activeSelf);
             Refresh();
         }
@@ -45,9 +45,9 @@ namespace RenkaiMobile.UI
         public void BuyShield() { if (buyController != null) buyController.BuyShield(); Refresh(); }
         public void BuyAbilityCharge() { if (buyController != null) buyController.BuyAbilityCharge(); Refresh(); }
 
-        private void OnPhaseChanged(RoundPhase phase)
+        private void OnPhaseChanged(MobileRoundPhase phase)
         {
-            if (panel != null) panel.SetActive(phase == RoundPhase.Buy);
+            if (panel != null) panel.SetActive(phase == MobileRoundPhase.Buy);
             Refresh();
         }
 
