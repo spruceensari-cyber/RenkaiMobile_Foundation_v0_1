@@ -25,7 +25,7 @@ namespace RenkaiMobile.Bots
         private void Update()
         {
             if (health == null || !health.IsAlive) return;
-            if (health.CurrentHealth / Mathf.Max(1f, health.MaxHealth) > seekHealthFraction) return;
+            if (health.Current / Mathf.Max(1f, health.Max) > seekHealthFraction) return;
 
             if (coverTarget == null || Time.time >= nextReassess)
             {
