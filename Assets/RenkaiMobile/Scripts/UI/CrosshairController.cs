@@ -8,18 +8,26 @@ namespace RenkaiMobile.UI
     {
         [SerializeField] private RectTransform[] arms;
         [SerializeField] private float baseGap = 8f;
+        [SerializeField] private float adsGap = 3.5f;
         [SerializeField] private float maxGap = 28f;
         [SerializeField] private float recovery = 10f;
         [SerializeField] private CanvasGroup hitMarker;
         [SerializeField] private CanvasGroup headshotMarker;
         [SerializeField] private Color restingColor = new Color(0.45f, 0.9f, 1f, 0.9f);
         [SerializeField] private Color firingColor = Color.white;
+
         private float pulse;
+        private float adsBlend;
         private Coroutine markerRoutine;
 
         public void Pulse(float amount)
         {
             pulse = Mathf.Clamp01(pulse + amount);
+        }
+
+        public void SetAdsBlend(float value)
+        {
+            adsBlend = Mathf.Clamp01(value);
         }
 
         public void ShowHitMarker(bool headshot)
@@ -33,8 +41,10 @@ namespace RenkaiMobile.UI
         private void Update()
         {
             pulse = Mathf.MoveTowards(pulse, 0f, recovery * Time.deltaTime);
-            float gap = Mathf.Lerp(baseGap, maxGap, pulse);
+            float restingGap = Mathf.Lerp(baseGap, adsGap, adsBlend);
+            float gap = Mathf.Lerp(restingGap, maxGap, pulse);
             if (arms == null || arms.Length < 4) return;
+
             Color armColor = Color.Lerp(restingColor, firingColor, pulse);
             for (int i = 0; i < arms.Length; i++)
             {

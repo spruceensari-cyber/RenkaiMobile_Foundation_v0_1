@@ -1,0 +1,1 @@
+Renkai Mobile premium vertical slice presentation direction: lobby, scoreboard, death recap, spectator HUD, round transitions, match state, armory, main menu world, Kagami atmosphere, layered parallax HUD.
