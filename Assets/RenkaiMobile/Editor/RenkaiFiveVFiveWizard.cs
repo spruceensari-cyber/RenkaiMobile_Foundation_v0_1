@@ -1,10 +1,9 @@
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using Renkai.Core;
-using Renkai.Combat;
-using Renkai.Rounds;
 using RenkaiMobile.Bots;
+using RenkaiMobile.Combat;
+using RenkaiMobile.Core;
 using RenkaiMobile.Rounds;
 using RenkaiMobile.Teams;
 
@@ -30,27 +29,27 @@ namespace RenkaiMobile.EditorTools
 
             RemoveOldMatchActors();
             ConfigurePlayer(player);
-            BuildTeam("Attackers", TeamId.Attackers, new Vector3(0f, 1f, -12f), Vector3.forward, 4, -1f);
-            BuildTeam("Defenders", TeamId.Defenders, new Vector3(0f, 1f, 26f), Vector3.back, 5, 1f);
+            BuildTeam("Attackers", MobileTeamId.Attackers, new Vector3(0f, 1f, -12f), Vector3.forward, 4, -1f, 1);
+            BuildTeam("Defenders", MobileTeamId.Defenders, new Vector3(0f, 1f, 26f), Vector3.back, 5, 1f, 0);
             EnsureRoundSystems();
 
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorSceneManager.SaveOpenScenes();
             Selection.activeGameObject = GameObject.Find("Renkai_5v5_Match");
-            EditorUtility.DisplayDialog("Renkai Mobile", "5v5 tactical match kuruldu: oyuncu + 4 ally bot, 5 defender bot.", "OK");
+            EditorUtility.DisplayDialog("Renkai Mobile", "Mobile-owned 5v5 tactical match kuruldu: oyuncu + 4 ally bot, 5 defender bot.", "OK");
         }
 
         private static void ConfigurePlayer(GameObject player)
         {
-            var team = player.GetComponent<TeamMember>() ?? player.AddComponent<TeamMember>();
-            team.SetTeam(TeamId.Attackers);
-            if (player.GetComponent<Health>() == null) player.AddComponent<Health>();
-            var roster = player.GetComponent<FiveVFiveRosterAgent>() ?? player.AddComponent<FiveVFiveRosterAgent>();
+            MobileTeamMember team = player.GetComponent<MobileTeamMember>() ?? player.AddComponent<MobileTeamMember>();
+            team.SetTeam(MobileTeamId.Attackers);
+            if (player.GetComponent<MobileHealth>() == null) player.AddComponent<MobileHealth>();
+            FiveVFiveRosterAgent roster = player.GetComponent<FiveVFiveRosterAgent>() ?? player.AddComponent<FiveVFiveRosterAgent>();
             roster.Configure(0, true);
             roster.CaptureSpawn();
         }
 
-        private static void BuildTeam(string label, TeamId team, Vector3 origin, Vector3 forward, int count, float lateralSign)
+        private static void BuildTeam(string label, MobileTeamId team, Vector3 origin, Vector3 forward, int count, float lateralSign, int slotOffset)
         {
             GameObject root = new GameObject(label + "_Team");
             root.transform.SetParent(GameObject.Find("Renkai_5v5_Match").transform);
@@ -61,21 +60,24 @@ namespace RenkaiMobile.EditorTools
                 Vector3 pos = origin + new Vector3(x * lateralSign, 0f, (i % 2) * 1.4f);
                 GameObject bot = CreateBot(label + "_Bot_" + (i + 1), team, pos, Quaternion.LookRotation(forward));
                 bot.transform.SetParent(root.transform);
-                var roster = bot.GetComponent<FiveVFiveRosterAgent>();
-                roster.Configure(i + 1, false);
+                FiveVFiveRosterAgent roster = bot.GetComponent<FiveVFiveRosterAgent>();
+                roster.Configure(i + slotOffset, false);
                 roster.CaptureSpawn();
             }
         }
 
-        private static GameObject CreateBot(string name, TeamId teamId, Vector3 position, Quaternion rotation)
+        private static GameObject CreateBot(string name, MobileTeamId teamId, Vector3 position, Quaternion rotation)
         {
             GameObject bot = new GameObject(name);
             bot.transform.SetPositionAndRotation(position, rotation);
-            var team = bot.AddComponent<TeamMember>();
+
+            MobileTeamMember team = bot.AddComponent<MobileTeamMember>();
             team.SetTeam(teamId);
-            bot.AddComponent<Health>();
+            bot.AddComponent<MobileHealth>();
             bot.AddComponent<FiveVFiveRosterAgent>();
             bot.AddComponent<TacticalBotBrain>();
+            bot.AddComponent<BotNavigationAgent>();
+            bot.AddComponent<BotNavigationIntentController>();
 
             GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             body.name = "Body";
@@ -89,9 +91,8 @@ namespace RenkaiMobile.EditorTools
             head.transform.SetParent(bot.transform, false);
             head.transform.localPosition = new Vector3(0f, 2.15f, 0f);
             head.transform.localScale = Vector3.one * 0.32f;
-            head.AddComponent<HeadshotZone>();
 
-            var capsule = bot.AddComponent<CapsuleCollider>();
+            CapsuleCollider capsule = bot.AddComponent<CapsuleCollider>();
             capsule.center = new Vector3(0f, 1.15f, 0f);
             capsule.height = 2.3f;
             capsule.radius = 0.42f;
@@ -100,27 +101,26 @@ namespace RenkaiMobile.EditorTools
 
         private static void EnsureRoundSystems()
         {
-            GameObject root = GameObject.Find("Renkai_5v5_Match");
-            if (root == null) root = new GameObject("Renkai_5v5_Match");
-
-            var round = root.GetComponent<RoundManager>() ?? root.AddComponent<RoundManager>();
-            var director = root.GetComponent<FiveVFiveRoundDirector>() ?? root.AddComponent<FiveVFiveRoundDirector>();
-            var so = new SerializedObject(director);
-            so.FindProperty("roundManager").objectReferenceValue = round;
+            GameObject root = GameObject.Find("Renkai_5v5_Match") ?? new GameObject("Renkai_5v5_Match");
+            MobileRoundManager round = root.GetComponent<MobileRoundManager>() ?? root.AddComponent<MobileRoundManager>();
+            FiveVFiveRoundDirector director = root.GetComponent<FiveVFiveRoundDirector>() ?? root.AddComponent<FiveVFiveRoundDirector>();
+            SerializedObject so = new SerializedObject(director);
+            SerializedProperty property = so.FindProperty("roundManager");
+            if (property != null) property.objectReferenceValue = round;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static void RemoveOldMatchActors()
         {
-            var oldRoot = GameObject.Find("Renkai_5v5_Match");
+            GameObject oldRoot = GameObject.Find("Renkai_5v5_Match");
             if (oldRoot != null) Object.DestroyImmediate(oldRoot);
 
-            var attackers = GameObject.Find("Attackers_Team");
+            GameObject attackers = GameObject.Find("Attackers_Team");
             if (attackers != null) Object.DestroyImmediate(attackers);
-            var defenders = GameObject.Find("Defenders_Team");
+            GameObject defenders = GameObject.Find("Defenders_Team");
             if (defenders != null) Object.DestroyImmediate(defenders);
 
-            GameObject root = new GameObject("Renkai_5v5_Match");
+            new GameObject("Renkai_5v5_Match");
         }
     }
 }
