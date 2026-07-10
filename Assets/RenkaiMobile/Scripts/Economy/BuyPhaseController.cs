@@ -1,11 +1,11 @@
 using UnityEngine;
-using Renkai.Rounds;
+using RenkaiMobile.Rounds;
 
 namespace RenkaiMobile.Economy
 {
     public sealed class BuyPhaseController : MonoBehaviour
     {
-        [SerializeField] private RoundManager roundManager;
+        [SerializeField] private MobileRoundManager roundManager;
         [SerializeField] private CreditWallet wallet;
         [SerializeField] private int rifleCost = 2900;
         [SerializeField] private int shieldCost = 1000;
@@ -17,7 +17,7 @@ namespace RenkaiMobile.Economy
 
         private void Awake()
         {
-            if (roundManager == null) roundManager = FindFirstObjectByType<RoundManager>();
+            if (roundManager == null) roundManager = FindFirstObjectByType<MobileRoundManager>();
             if (wallet == null) wallet = GetComponent<CreditWallet>();
         }
 
@@ -51,7 +51,7 @@ namespace RenkaiMobile.Economy
 
         private bool CanBuy()
         {
-            return roundManager != null && roundManager.Phase == RoundPhase.Buy;
+            return roundManager != null && roundManager.Phase == MobileRoundPhase.Buy;
         }
     }
 }
