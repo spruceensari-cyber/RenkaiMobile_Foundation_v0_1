@@ -34,6 +34,7 @@ namespace Renkai.Combat
         public event Action<WeaponShot> ShotFired;
         public event Action ReloadStarted;
         public event Action ReloadFinished;
+        public event Action Fired;
 
         public int AmmoInMagazine { get; private set; }
         public int MagazineSize => definition != null ? definition.magazineSize : 0;
@@ -66,6 +67,7 @@ namespace Renkai.Combat
             nextFireTime = Time.time + definition.fireInterval;
             AmmoInMagazine--;
             AmmoChanged?.Invoke(AmmoInMagazine, definition.magazineSize);
+            Fired?.Invoke();
 
             float spread = definition.hipSpreadDegrees;
             if (motor != null && motor.PlanarSpeed > 0.25f)
