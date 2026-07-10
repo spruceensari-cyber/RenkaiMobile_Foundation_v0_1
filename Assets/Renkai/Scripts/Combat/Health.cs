@@ -9,6 +9,7 @@ namespace Renkai.Combat
         [SerializeField] private bool destroyOnDeath;
 
         public event Action<float, float> Changed;
+        public event Action<DamageInfo, float, float> Damaged;
         public event Action<DamageInfo> Died;
 
         public float Current { get; private set; }
@@ -27,6 +28,7 @@ namespace Renkai.Combat
 
             Current = Mathf.Max(0f, Current - damage.Amount);
             Changed?.Invoke(Current, maxHealth);
+            Damaged?.Invoke(damage, Current, maxHealth);
 
             if (Current <= 0f)
             {

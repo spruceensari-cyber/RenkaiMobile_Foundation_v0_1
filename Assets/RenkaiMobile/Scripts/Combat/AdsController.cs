@@ -10,6 +10,8 @@ namespace RenkaiMobile.Combat
         [SerializeField] private float speed = 14f;
         private bool ads;
 
+        public bool IsAds => ads;
+
         public void SetAds(bool value) => ads = value;
 
         private void Update()
