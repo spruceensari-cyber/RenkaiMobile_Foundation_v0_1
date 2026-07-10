@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Renkai.Core;
+using RenkaiMobile.Core;
 using RenkaiMobile.Teams;
 
 namespace RenkaiMobile.UI
@@ -41,7 +41,7 @@ namespace RenkaiMobile.UI
                 RectTransform rt = go.GetComponent<RectTransform>();
                 rt.sizeDelta = new Vector2(12f, 12f);
                 Image image = go.GetComponent<Image>();
-                image.color = agent.Team == TeamId.Attackers
+                image.color = agent.Team == MobileTeamId.Attackers
                     ? new Color(0.1f, 0.75f, 1f, 0.95f)
                     : new Color(0.95f, 0.2f, 0.45f, 0.95f);
                 icons.Add(agent, rt);

@@ -1,13 +1,13 @@
 using System;
 using UnityEngine;
-using Renkai.Core;
-using Renkai.Rounds;
+using RenkaiMobile.Core;
+using RenkaiMobile.Rounds;
 
 namespace RenkaiMobile.Objective
 {
     public sealed class SpiritCoreRoundObjective : MonoBehaviour
     {
-        [SerializeField] private RoundManager roundManager;
+        [SerializeField] private MobileRoundManager roundManager;
         [SerializeField] private float plantSeconds = 4f;
         [SerializeField] private float defuseSeconds = 7f;
         [SerializeField] private float detonationSeconds = 45f;
@@ -19,28 +19,38 @@ namespace RenkaiMobile.Objective
 
         public bool IsPlanted { get; private set; }
         public float RemainingDetonationSeconds { get; private set; }
+
         private float interactionProgress;
-        private TeamId interactingTeam = TeamId.None;
+        private MobileTeamId interactingTeam = MobileTeamId.None;
 
         private void Awake()
         {
-            if (roundManager == null) roundManager = FindFirstObjectByType<RoundManager>();
+            if (roundManager == null) roundManager = FindFirstObjectByType<MobileRoundManager>();
+        }
+
+        private void OnEnable()
+        {
+            if (roundManager != null) roundManager.PhaseChanged += OnPhaseChanged;
+        }
+
+        private void OnDisable()
+        {
+            if (roundManager != null) roundManager.PhaseChanged -= OnPhaseChanged;
         }
 
         private void Update()
         {
             if (!IsPlanted) return;
             RemainingDetonationSeconds -= Time.deltaTime;
-            if (RemainingDetonationSeconds <= 0f)
-            {
-                RemainingDetonationSeconds = 0f;
-                IsPlanted = false;
-                Detonated?.Invoke();
-                roundManager?.EndRound(TeamId.Attackers);
-            }
+            if (RemainingDetonationSeconds > 0f) return;
+
+            RemainingDetonationSeconds = 0f;
+            IsPlanted = false;
+            Detonated?.Invoke();
+            roundManager?.EndRound(MobileTeamId.Attackers);
         }
 
-        public void BeginInteraction(TeamId team)
+        public void BeginInteraction(MobileTeamId team)
         {
             interactingTeam = team;
             interactionProgress = 0f;
@@ -49,23 +59,23 @@ namespace RenkaiMobile.Objective
 
         public void TickInteraction(float deltaTime)
         {
-            if (interactingTeam == TeamId.None) return;
+            if (interactingTeam == MobileTeamId.None) return;
             interactionProgress += deltaTime;
             float required = RequiredInteractionSeconds();
             ProgressChanged?.Invoke(interactionProgress, required);
             if (interactionProgress < required) return;
 
-            if (!IsPlanted && interactingTeam == TeamId.Attackers)
+            if (!IsPlanted && interactingTeam == MobileTeamId.Attackers)
             {
                 IsPlanted = true;
                 RemainingDetonationSeconds = detonationSeconds;
                 Planted?.Invoke();
             }
-            else if (IsPlanted && interactingTeam == TeamId.Defenders)
+            else if (IsPlanted && interactingTeam == MobileTeamId.Defenders)
             {
                 IsPlanted = false;
                 Defused?.Invoke();
-                roundManager?.EndRound(TeamId.Defenders);
+                roundManager?.EndRound(MobileTeamId.Defenders);
             }
 
             CancelInteraction();
@@ -73,7 +83,7 @@ namespace RenkaiMobile.Objective
 
         public void CancelInteraction()
         {
-            interactingTeam = TeamId.None;
+            interactingTeam = MobileTeamId.None;
             interactionProgress = 0f;
             ProgressChanged?.Invoke(0f, 0f);
         }
@@ -83,6 +93,11 @@ namespace RenkaiMobile.Objective
             IsPlanted = false;
             RemainingDetonationSeconds = 0f;
             CancelInteraction();
+        }
+
+        private void OnPhaseChanged(MobileRoundPhase phase)
+        {
+            if (phase == MobileRoundPhase.Buy) ResetObjective();
         }
 
         private float RequiredInteractionSeconds()

@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-using Renkai.Core;
+using RenkaiMobile.Core;
 using RenkaiMobile.Teams;
 
 namespace RenkaiMobile.UI
@@ -27,8 +27,8 @@ namespace RenkaiMobile.UI
             foreach (FiveVFiveRosterAgent agent in roster)
             {
                 if (agent == null || !agent.IsAlive) continue;
-                if (agent.Team == TeamId.Attackers) attackersAlive++;
-                else if (agent.Team == TeamId.Defenders) defendersAlive++;
+                if (agent.Team == MobileTeamId.Attackers) attackersAlive++;
+                else if (agent.Team == MobileTeamId.Defenders) defendersAlive++;
             }
 
             if (attackersText != null) attackersText.text = "ATTACKERS  " + BuildPips(attackersAlive);

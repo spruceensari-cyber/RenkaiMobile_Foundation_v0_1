@@ -1,9 +1,9 @@
 using UnityEngine;
-using Renkai.Core;
+using RenkaiMobile.Core;
 
 namespace RenkaiMobile.Objective
 {
-    [RequireComponent(typeof(TeamMember))]
+    [RequireComponent(typeof(MobileTeamMember))]
     public sealed class SpiritCoreCarrier : MonoBehaviour
     {
         [SerializeField] private SpiritCoreRoundObjective objective;
@@ -12,14 +12,14 @@ namespace RenkaiMobile.Objective
 
         public bool HasCore { get; private set; }
 
-        private TeamMember team;
+        private MobileTeamMember team;
         private SpiritCoreSiteZone currentSite;
 
         private void Awake()
         {
-            team = GetComponent<TeamMember>();
+            team = GetComponent<MobileTeamMember>();
             if (objective == null) objective = FindFirstObjectByType<SpiritCoreRoundObjective>();
-            HasCore = team != null && team.Team == TeamId.Attackers;
+            HasCore = team != null && team.Team == MobileTeamId.Attackers;
         }
 
         private void Update()
@@ -34,8 +34,8 @@ namespace RenkaiMobile.Objective
         public void BeginInteraction()
         {
             if (objective == null || team == null) return;
-            if (team.Team == TeamId.Attackers && (!HasCore || currentSite == null || objective.IsPlanted)) return;
-            if (team.Team == TeamId.Defenders && !objective.IsPlanted) return;
+            if (team.Team == MobileTeamId.Attackers && (!HasCore || currentSite == null || objective.IsPlanted)) return;
+            if (team.Team == MobileTeamId.Defenders && !objective.IsPlanted) return;
             objective.BeginInteraction(team.Team);
         }
 
@@ -51,7 +51,10 @@ namespace RenkaiMobile.Objective
             objective?.CancelInteraction();
         }
 
-        public void GiveCore() => HasCore = true;
+        public void GiveCore()
+        {
+            if (team != null && team.Team == MobileTeamId.Attackers) HasCore = true;
+        }
 
         private void OnTriggerEnter(Collider other)
         {

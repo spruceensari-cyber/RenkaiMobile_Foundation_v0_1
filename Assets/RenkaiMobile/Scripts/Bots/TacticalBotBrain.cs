@@ -1,10 +1,10 @@
 using UnityEngine;
-using Renkai.Core;
-using Renkai.Combat;
+using RenkaiMobile.Core;
+using RenkaiMobile.Combat;
 
 namespace RenkaiMobile.Bots
 {
-    [RequireComponent(typeof(TeamMember), typeof(Health))]
+    [RequireComponent(typeof(MobileTeamMember), typeof(MobileHealth))]
     public sealed class TacticalBotBrain : MonoBehaviour
     {
         [SerializeField] private float moveSpeed = 2.1f;
@@ -15,8 +15,8 @@ namespace RenkaiMobile.Bots
         [SerializeField] private float aimTurnSpeed = 7f;
         [SerializeField] private LayerMask sightMask = ~0;
 
-        private TeamMember team;
-        private Health health;
+        private MobileTeamMember team;
+        private MobileHealth health;
         private Transform target;
         private float nextTargetSearch;
         private float nextFire;
@@ -24,14 +24,15 @@ namespace RenkaiMobile.Bots
 
         private void Awake()
         {
-            team = GetComponent<TeamMember>();
-            health = GetComponent<Health>();
+            team = GetComponent<MobileTeamMember>();
+            health = GetComponent<MobileHealth>();
             strafeSign = Random.value > 0.5f ? 1f : -1f;
         }
 
         private void Update()
         {
-            if (!health.IsAlive) return;
+            if (health == null || !health.IsAlive) return;
+
             if (Time.time >= nextTargetSearch)
             {
                 nextTargetSearch = Time.time + 0.5f;
@@ -51,14 +52,22 @@ namespace RenkaiMobile.Bots
             if (distance > preferredRange + 2f) move += dir;
             else if (distance < preferredRange - 3f) move -= dir;
             move += transform.right * strafeSign * 0.35f;
-            transform.position += move.normalized * moveSpeed * Time.deltaTime;
+            if (move.sqrMagnitude > 0.001f)
+                transform.position += move.normalized * moveSpeed * Time.deltaTime;
 
             if (distance <= fireRange && Time.time >= nextFire && HasLineOfSight(target))
             {
                 nextFire = Time.time + fireInterval + Random.Range(-0.08f, 0.12f);
-                var enemyHealth = target.GetComponent<Health>();
+                MobileHealth enemyHealth = target.GetComponent<MobileHealth>();
                 if (enemyHealth != null)
-                    enemyHealth.ApplyDamage(new DamageInfo(damage, target.position + Vector3.up * 1.2f, dir, gameObject, false));
+                {
+                    enemyHealth.ApplyDamage(new MobileDamageInfo(
+                        damage,
+                        target.position + Vector3.up * 1.2f,
+                        dir,
+                        gameObject,
+                        false));
+                }
             }
         }
 
@@ -67,22 +76,29 @@ namespace RenkaiMobile.Bots
             Vector3 origin = transform.position + Vector3.up * 1.45f;
             Vector3 aim = candidate.position + Vector3.up * 1.25f;
             Vector3 ray = aim - origin;
-            if (!Physics.Raycast(origin, ray.normalized, out RaycastHit hit, ray.magnitude + 0.5f, sightMask, QueryTriggerInteraction.Ignore)) return true;
+            if (!Physics.Raycast(origin, ray.normalized, out RaycastHit hit, ray.magnitude + 0.5f, sightMask, QueryTriggerInteraction.Ignore))
+                return true;
             return hit.transform == candidate || hit.transform.IsChildOf(candidate);
         }
 
         private Transform FindNearestEnemy()
         {
-            TeamMember[] all = FindObjectsByType<TeamMember>(FindObjectsSortMode.None);
+            MobileTeamMember[] all = FindObjectsByType<MobileTeamMember>(FindObjectsSortMode.None);
             Transform best = null;
             float bestSqr = float.MaxValue;
-            foreach (var member in all)
+
+            foreach (MobileTeamMember member in all)
             {
-                if (member == null || member == team || member.Team == TeamId.None || member.Team == team.Team) continue;
-                Health candidateHealth = member.GetComponent<Health>();
+                if (member == null || member == team || member.Team == MobileTeamId.None || member.Team == team.Team) continue;
+                MobileHealth candidateHealth = member.GetComponent<MobileHealth>();
                 if (candidateHealth == null || !candidateHealth.IsAlive) continue;
+
                 float sqr = (member.transform.position - transform.position).sqrMagnitude;
-                if (sqr < bestSqr) { bestSqr = sqr; best = member.transform; }
+                if (sqr < bestSqr)
+                {
+                    bestSqr = sqr;
+                    best = member.transform;
+                }
             }
             return best;
         }
