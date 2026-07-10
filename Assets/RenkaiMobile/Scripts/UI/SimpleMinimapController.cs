@@ -9,6 +9,7 @@ namespace RenkaiMobile.UI
     public sealed class SimpleMinimapController : MonoBehaviour
     {
         [SerializeField] private RectTransform mapRoot;
+        [SerializeField] private MobileTeamVisionService visionService;
         [SerializeField] private Vector2 worldMin = new Vector2(-24f, -16f);
         [SerializeField] private Vector2 worldMax = new Vector2(24f, 34f);
         [SerializeField] private Vector2 mapSize = new Vector2(240f, 240f);
@@ -16,6 +17,11 @@ namespace RenkaiMobile.UI
 
         private readonly Dictionary<FiveVFiveRosterAgent, RectTransform> icons = new Dictionary<FiveVFiveRosterAgent, RectTransform>();
         private float nextRefresh;
+
+        private void Awake()
+        {
+            if (visionService == null) visionService = FindFirstObjectByType<MobileTeamVisionService>();
+        }
 
         private void Start()
         {
@@ -56,7 +62,11 @@ namespace RenkaiMobile.UI
                 FiveVFiveRosterAgent agent = pair.Key;
                 RectTransform icon = pair.Value;
                 if (agent == null || icon == null) continue;
-                icon.gameObject.SetActive(agent.IsAlive);
+
+                bool visible = agent.IsAlive && (visionService == null || visionService.IsVisibleToLocalTeam(agent));
+                icon.gameObject.SetActive(visible);
+                if (!visible) continue;
+
                 Vector3 p = agent.transform.position;
                 float x = Mathf.InverseLerp(worldMin.x, worldMax.x, p.x);
                 float y = Mathf.InverseLerp(worldMin.y, worldMax.y, p.z);
