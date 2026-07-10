@@ -3,8 +3,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
-using RenkaiMobile.Combat;
-using RenkaiMobile.Events;
+using RenkaiMobile.Stats;
 
 namespace RenkaiMobile.Presentation
 {
@@ -34,7 +33,7 @@ namespace RenkaiMobile.Presentation
         public void Refresh()
         {
             if (scoreboardText == null || statsTracker == null) return;
-            IEnumerable<PlayerMatchStats> ordered = statsTracker.AllStats.OrderByDescending(x => x.kills).ThenByDescending(x => x.damageDealt);
+            IEnumerable<PlayerMatchStats> ordered = statsTracker.Stats.OrderByDescending(x => x.kills).ThenByDescending(x => x.damageDealt);
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("RESONANCE SCOREBOARD");
             sb.AppendLine("PLAYER            K   HS   A   DMG");
