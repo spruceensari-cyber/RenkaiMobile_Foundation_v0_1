@@ -1,8 +1,11 @@
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UI;
 using Renkai.Combat;
 using RenkaiMobile.Combat;
+using RenkaiMobile.UI;
+using RenkaiMobile.Input;
 
 namespace RenkaiMobile.EditorTools
 {
@@ -24,11 +27,15 @@ namespace RenkaiMobile.EditorTools
                 return;
             }
 
+            var legacyDebug = player.GetComponent<EditorFpsDebugInput>();
+            if (legacyDebug != null) Object.DestroyImmediate(legacyDebug);
+
             CreateMaterials();
             ThemeArena();
             BuildWeaponViewModel(player);
             UpgradeTargets();
             AddAtmosphere();
+            AddAmmoHud();
 
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorSceneManager.SaveOpenScenes();
@@ -82,9 +89,7 @@ namespace RenkaiMobile.EditorTools
             var root = new GameObject("RenkaiVisualSet");
 
             for (int i = -4; i <= 4; i++)
-            {
                 CreateStrip(root.transform, new Vector3(i * 4f, 0.012f, 10f), new Vector3(0.08f, 0.02f, 60f), i % 2 == 0 ? cyan : magenta);
-            }
 
             CreateStrip(root.transform, new Vector3(0f, 0.015f, 2f), new Vector3(32f, 0.02f, 0.08f), cyan);
             CreateStrip(root.transform, new Vector3(0f, 0.015f, 30f), new Vector3(32f, 0.02f, 0.08f), magenta);
@@ -127,6 +132,10 @@ namespace RenkaiMobile.EditorTools
 
             root.AddComponent<WeaponSway>();
             root.AddComponent<WeaponKickback>();
+
+            var weapon = player.GetComponentInChildren<HitscanWeapon>();
+            if (weapon != null && weapon.GetComponent<WeaponFeelBridge>() == null)
+                weapon.gameObject.AddComponent<WeaponFeelBridge>();
         }
 
         private static void UpgradeTargets()
@@ -137,6 +146,47 @@ namespace RenkaiMobile.EditorTools
                 if (health.GetComponent<TargetDummyFeedback>() == null)
                     health.gameObject.AddComponent<TargetDummyFeedback>();
             }
+        }
+
+        private static void AddAmmoHud()
+        {
+            var canvas = Object.FindFirstObjectByType<Canvas>();
+            var weapon = Object.FindFirstObjectByType<HitscanWeapon>();
+            if (canvas == null || weapon == null) return;
+
+            var old = GameObject.Find("AmmoPanel");
+            if (old != null) Object.DestroyImmediate(old);
+
+            var panel = new GameObject("AmmoPanel", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(AmmoHud));
+            panel.transform.SetParent(canvas.transform, false);
+            var image = panel.GetComponent<Image>();
+            image.color = new Color(0.02f, 0.035f, 0.07f, 0.78f);
+            var rt = panel.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = new Vector2(1f, 0f);
+            rt.pivot = new Vector2(1f, 0f);
+            rt.anchoredPosition = new Vector2(-36f, 32f);
+            rt.sizeDelta = new Vector2(240f, 82f);
+
+            var textGo = new GameObject("AmmoText", typeof(RectTransform), typeof(Text));
+            textGo.transform.SetParent(panel.transform, false);
+            var text = textGo.GetComponent<Text>();
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.fontSize = 34;
+            text.fontStyle = FontStyle.Bold;
+            text.alignment = TextAnchor.MiddleCenter;
+            text.color = new Color(0.65f, 0.9f, 1f);
+            text.text = "25 / 25";
+            var textRt = text.GetComponent<RectTransform>();
+            textRt.anchorMin = Vector2.zero;
+            textRt.anchorMax = Vector2.one;
+            textRt.offsetMin = Vector2.zero;
+            textRt.offsetMax = Vector2.zero;
+
+            var hud = panel.GetComponent<AmmoHud>();
+            var so = new SerializedObject(hud);
+            so.FindProperty("weapon").objectReferenceValue = weapon;
+            so.FindProperty("ammoText").objectReferenceValue = text;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static void AddAtmosphere()
