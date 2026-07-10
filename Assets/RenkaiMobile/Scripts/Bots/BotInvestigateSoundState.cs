@@ -3,16 +3,15 @@ using RenkaiMobile.Rounds;
 
 namespace RenkaiMobile.Bots
 {
-    [RequireComponent(typeof(BotPerceptionMemory))]
+    [RequireComponent(typeof(BotPerceptionMemory), typeof(BotNavigationIntentController))]
     public sealed class BotInvestigateSoundState : MonoBehaviour
     {
         [SerializeField] private MobileRoundManager roundManager;
-        [SerializeField] private float moveSpeed = 2.2f;
-        [SerializeField] private float stopDistance = 1.8f;
         [SerializeField] private float investigateTimeout = 4.5f;
         [SerializeField] private float minimumConfidence = 0.3f;
 
         private BotPerceptionMemory memory;
+        private BotNavigationIntentController navigationIntent;
         private float investigateUntil;
         private Vector3 destination;
         private bool investigating;
@@ -20,6 +19,7 @@ namespace RenkaiMobile.Bots
         private void Awake()
         {
             memory = GetComponent<BotPerceptionMemory>();
+            navigationIntent = GetComponent<BotNavigationIntentController>();
             if (roundManager == null) roundManager = FindFirstObjectByType<MobileRoundManager>();
         }
 
@@ -39,21 +39,7 @@ namespace RenkaiMobile.Bots
                 return;
             }
 
-            Vector3 delta = destination - transform.position;
-            delta.y = 0f;
-            if (delta.magnitude <= stopDistance)
-            {
-                investigating = false;
-                return;
-            }
-
-            Vector3 dir = delta.normalized;
-            transform.position += dir * moveSpeed * Time.deltaTime;
-            if (dir.sqrMagnitude > 0.001f)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(dir, Vector3.up);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 6f * Time.deltaTime);
-            }
+            navigationIntent?.Submit(destination, BotNavigationIntentPriority.InvestigateSound, 0.35f);
         }
 
         private void TryBeginInvestigation()
