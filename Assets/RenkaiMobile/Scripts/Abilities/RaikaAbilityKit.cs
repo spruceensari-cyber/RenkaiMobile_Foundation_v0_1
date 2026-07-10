@@ -7,6 +7,7 @@ namespace RenkaiMobile.Abilities
     public sealed class RaikaAbilityKit : MonoBehaviour
     {
         [SerializeField] private AbilityRuntimeController runtime;
+        [SerializeField] private MobileDamagePolicy damagePolicy;
         [SerializeField] private float surgeDistance = 5.5f;
         [SerializeField] private float surgeSeconds = 0.16f;
         [SerializeField] private float pulseRadius = 6f;
@@ -17,6 +18,7 @@ namespace RenkaiMobile.Abilities
         private void Awake()
         {
             if (runtime == null) runtime = GetComponent<AbilityRuntimeController>();
+            if (damagePolicy == null) damagePolicy = FindFirstObjectByType<MobileDamagePolicy>();
         }
 
         public void UseVelocitySurge()
@@ -33,6 +35,7 @@ namespace RenkaiMobile.Abilities
             {
                 MobileHealth health = hit.GetComponentInParent<MobileHealth>();
                 if (health == null || health.gameObject == gameObject) continue;
+                if (damagePolicy != null && !damagePolicy.CanDamage(gameObject, health.gameObject)) continue;
                 Vector3 direction = (health.transform.position - transform.position).normalized;
                 health.ApplyDamage(new MobileDamageInfo(pulseDamage, health.transform.position, direction, gameObject, false));
             }
