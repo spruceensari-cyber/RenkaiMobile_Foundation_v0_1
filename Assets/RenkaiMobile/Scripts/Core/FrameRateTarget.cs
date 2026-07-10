@@ -1,0 +1,1 @@
+namespace RenkaiMobile.Core { public sealed class FrameRateTarget { public int Target = 60; } }

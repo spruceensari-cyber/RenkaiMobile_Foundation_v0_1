@@ -1,0 +1,1 @@
+using UnityEngine; namespace RenkaiMobile.Input { public struct InputState { public Vector2 Move; public Vector2 Look; public bool Fire; public bool Reload; public bool Jump; public bool Crouch; } }

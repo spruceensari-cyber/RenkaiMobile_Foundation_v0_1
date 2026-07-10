@@ -1,0 +1,1 @@
+using UnityEngine; namespace RenkaiMobile.Abilities { [CreateAssetMenu(menuName="Renkai Mobile/Ability Definition")] public sealed class AbilityDefinition : ScriptableObject { public string AbilityId="ability_01"; public float Cooldown=8f; public float CastTime=0.25f; public float Range=18f; public int Charges=1; } }

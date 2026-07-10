@@ -1,0 +1,1 @@
+using UnityEngine; namespace RenkaiMobile.Combat { public sealed class Health : MonoBehaviour { [SerializeField] float maxHealth = 100f; public float Current { get; private set; } public bool IsAlive => Current > 0f; void Awake(){ Current = maxHealth; } public void Apply(float damage){ if(damage <= 0f || !IsAlive) return; Current = Mathf.Max(0f, Current - damage); } } }
