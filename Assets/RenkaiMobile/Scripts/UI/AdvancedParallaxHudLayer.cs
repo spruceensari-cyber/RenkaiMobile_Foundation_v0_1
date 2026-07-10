@@ -23,8 +23,8 @@ namespace RenkaiMobile.UI
         {
             Vector2 input = Vector2.zero;
 #if UNITY_EDITOR || UNITY_STANDALONE
-            input.x = (Input.mousePosition.x / Mathf.Max(1f, Screen.width) - 0.5f) * 2f;
-            input.y = (Input.mousePosition.y / Mathf.Max(1f, Screen.height) - 0.5f) * 2f;
+            input.x = (UnityEngine.Input.mousePosition.x / Mathf.Max(1f, Screen.width) - 0.5f) * 2f;
+            input.y = (UnityEngine.Input.mousePosition.y / Mathf.Max(1f, Screen.height) - 0.5f) * 2f;
 #endif
             input.y += Mathf.Sin(Time.unscaledTime * idleWave) * 0.08f;
 
