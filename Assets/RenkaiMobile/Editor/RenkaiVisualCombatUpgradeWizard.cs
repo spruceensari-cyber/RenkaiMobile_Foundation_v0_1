@@ -140,7 +140,7 @@ namespace RenkaiMobile.EditorTools
 
         private static void UpgradeTargets()
         {
-            var healthObjects = Object.FindObjectsByType<Health>(FindObjectsSortMode.None);
+            var healthObjects = Object.FindObjectsByType<Renkai.Combat.Health>(FindObjectsSortMode.None);
             foreach (var health in healthObjects)
             {
                 if (health.GetComponent<TargetDummyFeedback>() == null)
