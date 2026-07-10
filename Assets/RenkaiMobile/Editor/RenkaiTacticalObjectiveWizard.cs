@@ -2,8 +2,8 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
-using Renkai.Rounds;
 using RenkaiMobile.Objective;
+using RenkaiMobile.Rounds;
 using RenkaiMobile.UI;
 
 namespace RenkaiMobile.EditorTools
@@ -19,92 +19,105 @@ namespace RenkaiMobile.EditorTools
                 return;
             }
 
-            var roundManager = Object.FindFirstObjectByType<RoundManager>();
+            MobileRoundManager roundManager = Object.FindFirstObjectByType<MobileRoundManager>();
             if (roundManager == null)
             {
-                var root = GameObject.Find("Renkai_5v5_Match") ?? new GameObject("Renkai_5v5_Match");
-                roundManager = root.AddComponent<RoundManager>();
+                GameObject root = GameObject.Find("Renkai_5v5_Match") ?? new GameObject("Renkai_5v5_Match");
+                roundManager = root.AddComponent<MobileRoundManager>();
             }
 
-            var objectiveRoot = GameObject.Find("SpiritCore_Objective") ?? new GameObject("SpiritCore_Objective");
-            var objective = objectiveRoot.GetComponent<SpiritCoreRoundObjective>() ?? objectiveRoot.AddComponent<SpiritCoreRoundObjective>();
+            GameObject objectiveRoot = GameObject.Find("Zodiac_Objective") ?? new GameObject("Zodiac_Objective");
+            ZodiacObjective objective = objectiveRoot.GetComponent<ZodiacObjective>() ?? objectiveRoot.AddComponent<ZodiacObjective>();
             Bind(objective, "roundManager", roundManager);
 
-            CreateSite("Site_A", new Vector3(-10f, 0.05f, 10f), "A");
-            CreateSite("Site_B", new Vector3(10f, 0.05f, 18f), "B");
-            CreateRoundHud(roundManager, objective);
+            CreateZone("Zodiac_Zone_A", new Vector3(-10f, 0.05f, 10f), "A");
+            CreateZone("Zodiac_Zone_B", new Vector3(10f, 0.05f, 18f), "B");
+            CreateObjectiveHud(objective);
 
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             EditorSceneManager.SaveOpenScenes();
-            EditorUtility.DisplayDialog("Renkai Mobile", "A/B site, Spirit Core objective ve tactical round HUD eklendi.", "OK");
+            EditorUtility.DisplayDialog("Renkai Mobile", "Zodiac Zone A/B, mobile objective ve objective HUD eklendi.", "OK");
         }
 
-        private static void CreateSite(string name, Vector3 position, string id)
+        private static void CreateZone(string name, Vector3 position, string id)
         {
-            var old = GameObject.Find(name);
+            GameObject old = GameObject.Find(name);
             if (old != null) Object.DestroyImmediate(old);
 
-            var site = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            site.name = name;
-            site.transform.position = position;
-            site.transform.localScale = new Vector3(4f, 0.05f, 4f);
-            var collider = site.GetComponent<Collider>();
+            GameObject zoneObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            zoneObject.name = name;
+            zoneObject.transform.position = position;
+            zoneObject.transform.localScale = new Vector3(4f, 0.05f, 4f);
+            Collider collider = zoneObject.GetComponent<Collider>();
             collider.isTrigger = true;
-            var zone = site.AddComponent<SpiritCoreSiteZone>();
+            ZodiacZone zone = zoneObject.AddComponent<ZodiacZone>();
             zone.Configure(id);
         }
 
-        private static void CreateRoundHud(RoundManager roundManager, SpiritCoreRoundObjective objective)
+        private static void CreateObjectiveHud(ZodiacObjective objective)
         {
-            var old = GameObject.Find("TacticalRoundHUD");
+            GameObject old = GameObject.Find("ZodiacObjectiveHUD");
             if (old != null) Object.DestroyImmediate(old);
 
-            var canvasGo = new GameObject("TacticalRoundHUD", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(TacticalRoundHud));
-            var canvas = canvasGo.GetComponent<Canvas>();
+            GameObject canvasGo = new GameObject("ZodiacObjectiveHUD", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(ZodiacObjectiveHud));
+            Canvas canvas = canvasGo.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            var scaler = canvasGo.GetComponent<CanvasScaler>();
+
+            CanvasScaler scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
 
-            Text score = CreateText(canvasGo.transform, "Score", "0  -  0", new Vector2(0f, -42f), 42, TextAnchor.UpperCenter);
-            Text phase = CreateText(canvasGo.transform, "Phase", "BUY PHASE", new Vector2(0f, -92f), 26, TextAnchor.UpperCenter);
-            Text timer = CreateText(canvasGo.transform, "Timer", "00:20", new Vector2(0f, -132f), 34, TextAnchor.UpperCenter);
-            Text objectiveText = CreateText(canvasGo.transform, "ObjectiveStatus", "", new Vector2(0f, -180f), 28, TextAnchor.UpperCenter);
+            Text state = CreateText(canvasGo.transform, "State", "ZODIAC DORMANT", new Vector2(0f, -86f), 30);
+            Text timer = CreateText(canvasGo.transform, "CollapseTimer", string.Empty, new Vector2(0f, -128f), 38);
 
-            var hud = canvasGo.GetComponent<TacticalRoundHud>();
-            var so = new SerializedObject(hud);
-            so.FindProperty("roundManager").objectReferenceValue = roundManager;
-            so.FindProperty("objective").objectReferenceValue = objective;
-            so.FindProperty("scoreText").objectReferenceValue = score;
-            so.FindProperty("phaseText").objectReferenceValue = phase;
-            so.FindProperty("timerText").objectReferenceValue = timer;
-            so.FindProperty("objectiveText").objectReferenceValue = objectiveText;
+            GameObject progressGo = new GameObject("InteractionProgress", typeof(RectTransform), typeof(Image));
+            progressGo.transform.SetParent(canvasGo.transform, false);
+            Image progress = progressGo.GetComponent<Image>();
+            progress.type = Image.Type.Filled;
+            progress.fillMethod = Image.FillMethod.Radial360;
+            RectTransform progressRt = progress.rectTransform;
+            progressRt.anchorMin = progressRt.anchorMax = new Vector2(0.5f, 0.5f);
+            progressRt.sizeDelta = new Vector2(120f, 120f);
+
+            ZodiacObjectiveHud hud = canvasGo.GetComponent<ZodiacObjectiveHud>();
+            SerializedObject so = new SerializedObject(hud);
+            SetObject(so, "objective", objective);
+            SetObject(so, "stateText", state);
+            SetObject(so, "timerText", timer);
+            SetObject(so, "progressFill", progress);
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static Text CreateText(Transform parent, string name, string content, Vector2 pos, int size, TextAnchor alignment)
+        private static Text CreateText(Transform parent, string name, string content, Vector2 pos, int size)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
+            GameObject go = new GameObject(name, typeof(RectTransform), typeof(Text));
             go.transform.SetParent(parent, false);
-            var text = go.GetComponent<Text>();
+            Text text = go.GetComponent<Text>();
             text.text = content;
             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             text.fontSize = size;
-            text.alignment = alignment;
+            text.alignment = TextAnchor.UpperCenter;
             text.color = Color.white;
-            var rt = text.rectTransform;
+
+            RectTransform rt = text.rectTransform;
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
             rt.pivot = new Vector2(0.5f, 1f);
             rt.anchoredPosition = pos;
-            rt.sizeDelta = new Vector2(700f, 60f);
+            rt.sizeDelta = new Vector2(760f, 60f);
             return text;
         }
 
         private static void Bind(Object target, string propertyName, Object value)
         {
-            var so = new SerializedObject(target);
-            so.FindProperty(propertyName).objectReferenceValue = value;
+            SerializedObject so = new SerializedObject(target);
+            SetObject(so, propertyName, value);
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void SetObject(SerializedObject so, string propertyName, Object value)
+        {
+            SerializedProperty property = so.FindProperty(propertyName);
+            if (property != null) property.objectReferenceValue = value;
         }
     }
 }
