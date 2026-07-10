@@ -1,21 +1,21 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Renkai.Core;
-using Renkai.Rounds;
+using RenkaiMobile.Core;
 using RenkaiMobile.Teams;
 
 namespace RenkaiMobile.Rounds
 {
     public sealed class FiveVFiveRoundDirector : MonoBehaviour
     {
-        [SerializeField] private RoundManager roundManager;
+        [SerializeField] private MobileRoundManager roundManager;
         [SerializeField] private float eliminationCheckInterval = 0.25f;
+
         private readonly List<FiveVFiveRosterAgent> agents = new List<FiveVFiveRosterAgent>();
         private float nextCheck;
 
         private void Awake()
         {
-            if (roundManager == null) roundManager = GetComponent<RoundManager>();
+            if (roundManager == null) roundManager = GetComponent<MobileRoundManager>();
             RefreshRoster();
         }
 
@@ -31,17 +31,17 @@ namespace RenkaiMobile.Rounds
 
         private void Update()
         {
-            if (roundManager == null || roundManager.Phase != RoundPhase.Live) return;
+            if (roundManager == null || roundManager.Phase != MobileRoundPhase.Live) return;
             if (Time.time < nextCheck) return;
             nextCheck = Time.time + eliminationCheckInterval;
 
-            int attackersAlive = CountAlive(TeamId.Attackers);
-            int defendersAlive = CountAlive(TeamId.Defenders);
+            int attackersAlive = CountAlive(MobileTeamId.Attackers);
+            int defendersAlive = CountAlive(MobileTeamId.Defenders);
 
             if (attackersAlive == 0 && defendersAlive > 0)
-                roundManager.EndRound(TeamId.Defenders);
+                roundManager.EndRound(MobileTeamId.Defenders);
             else if (defendersAlive == 0 && attackersAlive > 0)
-                roundManager.EndRound(TeamId.Attackers);
+                roundManager.EndRound(MobileTeamId.Attackers);
         }
 
         public void RefreshRoster()
@@ -50,7 +50,7 @@ namespace RenkaiMobile.Rounds
             agents.AddRange(FindObjectsByType<FiveVFiveRosterAgent>(FindObjectsSortMode.None));
         }
 
-        private int CountAlive(TeamId team)
+        private int CountAlive(MobileTeamId team)
         {
             int count = 0;
             for (int i = 0; i < agents.Count; i++)
@@ -58,9 +58,9 @@ namespace RenkaiMobile.Rounds
             return count;
         }
 
-        private void OnPhaseChanged(RoundPhase phase)
+        private void OnPhaseChanged(MobileRoundPhase phase)
         {
-            if (phase != RoundPhase.Buy) return;
+            if (phase != MobileRoundPhase.Buy) return;
             RefreshRoster();
             for (int i = 0; i < agents.Count; i++)
                 agents[i]?.ResetForRound();
