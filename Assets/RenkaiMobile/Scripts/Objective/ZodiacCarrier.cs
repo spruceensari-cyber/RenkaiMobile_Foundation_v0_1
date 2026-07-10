@@ -26,9 +26,9 @@ namespace RenkaiMobile.Objective
         private void Update()
         {
 #if UNITY_EDITOR || UNITY_STANDALONE
-            if (Input.GetKeyDown(editorInteractKey)) BeginInteract();
-            if (Input.GetKey(editorInteractKey)) TickInteract(Time.deltaTime);
-            if (Input.GetKeyUp(editorInteractKey)) EndInteract();
+            if (UnityEngine.Input.GetKeyDown(editorInteractKey)) BeginInteract();
+            if (UnityEngine.Input.GetKey(editorInteractKey)) TickInteract(Time.deltaTime);
+            if (UnityEngine.Input.GetKeyUp(editorInteractKey)) EndInteract();
 #endif
         }
 

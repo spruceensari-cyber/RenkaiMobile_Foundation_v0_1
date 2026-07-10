@@ -25,9 +25,9 @@ namespace RenkaiMobile.Objective
         private void Update()
         {
 #if UNITY_EDITOR || UNITY_STANDALONE
-            if (Input.GetKeyDown(editorInteractKey)) BeginInteraction();
-            if (Input.GetKey(editorInteractKey)) TickInteraction(Time.deltaTime);
-            if (Input.GetKeyUp(editorInteractKey)) CancelInteraction();
+            if (UnityEngine.Input.GetKeyDown(editorInteractKey)) BeginInteraction();
+            if (UnityEngine.Input.GetKey(editorInteractKey)) TickInteraction(Time.deltaTime);
+            if (UnityEngine.Input.GetKeyUp(editorInteractKey)) CancelInteraction();
 #endif
         }
 
@@ -58,14 +58,14 @@ namespace RenkaiMobile.Objective
 
         private void OnTriggerEnter(Collider other)
         {
-            var site = other.GetComponent<SpiritCoreSiteZone>();
+            SpiritCoreSiteZone site = other.GetComponent<SpiritCoreSiteZone>();
             if (site != null && Vector3.Distance(transform.position, site.transform.position) <= interactionRange + 4f)
                 currentSite = site;
         }
 
         private void OnTriggerExit(Collider other)
         {
-            var site = other.GetComponent<SpiritCoreSiteZone>();
+            SpiritCoreSiteZone site = other.GetComponent<SpiritCoreSiteZone>();
             if (site != null && currentSite == site) currentSite = null;
         }
     }
