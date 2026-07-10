@@ -1,12 +1,12 @@
 using UnityEngine;
-using Renkai.Core;
-using Renkai.Rounds;
+using RenkaiMobile.Core;
+using RenkaiMobile.Rounds;
 
 namespace RenkaiMobile.Economy
 {
     public sealed class RoundEconomyRewards : MonoBehaviour
     {
-        [SerializeField] private RoundManager roundManager;
+        [SerializeField] private MobileRoundManager roundManager;
         [SerializeField] private int winReward = 3000;
         [SerializeField] private int lossRewardBase = 1900;
         [SerializeField] private int lossStreakStep = 500;
@@ -17,7 +17,7 @@ namespace RenkaiMobile.Economy
 
         private void Awake()
         {
-            if (roundManager == null) roundManager = FindFirstObjectByType<RoundManager>();
+            if (roundManager == null) roundManager = FindFirstObjectByType<MobileRoundManager>();
         }
 
         private void OnEnable()
@@ -30,15 +30,15 @@ namespace RenkaiMobile.Economy
             if (roundManager != null) roundManager.ScoreChanged -= OnScoreChanged;
         }
 
-        private void OnScoreChanged(TeamId winner, int attackers, int defenders)
+        private void OnScoreChanged(MobileTeamId winner, int attackers, int defenders)
         {
-            TeamId loser = winner == TeamId.Attackers ? TeamId.Defenders : TeamId.Attackers;
-            if (winner == TeamId.Attackers)
+            MobileTeamId loser = winner == MobileTeamId.Attackers ? MobileTeamId.Defenders : MobileTeamId.Attackers;
+            if (winner == MobileTeamId.Attackers)
             {
                 attackersLossStreak = 0;
                 defendersLossStreak++;
             }
-            else if (winner == TeamId.Defenders)
+            else if (winner == MobileTeamId.Defenders)
             {
                 defendersLossStreak = 0;
                 attackersLossStreak++;
@@ -47,16 +47,16 @@ namespace RenkaiMobile.Economy
             CreditWallet[] wallets = FindObjectsByType<CreditWallet>(FindObjectsSortMode.None);
             foreach (CreditWallet wallet in wallets)
             {
-                TeamMember member = wallet.GetComponent<TeamMember>();
-                if (member == null || member.Team == TeamId.None) continue;
+                MobileTeamMember member = wallet.GetComponent<MobileTeamMember>();
+                if (member == null || member.Team == MobileTeamId.None) continue;
                 if (member.Team == winner) wallet.AddCredits(winReward);
                 else if (member.Team == loser) wallet.AddCredits(GetLossReward(member.Team));
             }
         }
 
-        private int GetLossReward(TeamId team)
+        private int GetLossReward(MobileTeamId team)
         {
-            int streak = team == TeamId.Attackers ? attackersLossStreak : defendersLossStreak;
+            int streak = team == MobileTeamId.Attackers ? attackersLossStreak : defendersLossStreak;
             int reward = lossRewardBase + Mathf.Max(0, streak - 1) * lossStreakStep;
             return Mathf.Min(reward, lossRewardMax);
         }
