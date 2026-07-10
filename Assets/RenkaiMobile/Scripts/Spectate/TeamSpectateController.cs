@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Renkai.Core;
+using RenkaiMobile.Core;
 using RenkaiMobile.Teams;
 
 namespace RenkaiMobile.Spectate
@@ -8,7 +8,7 @@ namespace RenkaiMobile.Spectate
     public sealed class TeamSpectateController : MonoBehaviour
     {
         [SerializeField] private Camera spectateCamera;
-        [SerializeField] private TeamId spectatedTeam = TeamId.Attackers;
+        [SerializeField] private MobileTeamId spectatedTeam = MobileTeamId.Attackers;
         [SerializeField] private Vector3 cameraOffset = new Vector3(0f, 1.6f, -3.2f);
         [SerializeField] private float followSharpness = 8f;
 
