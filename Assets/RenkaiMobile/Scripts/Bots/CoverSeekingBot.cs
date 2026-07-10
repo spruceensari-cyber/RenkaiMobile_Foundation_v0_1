@@ -3,7 +3,7 @@ using RenkaiMobile.Combat;
 
 namespace RenkaiMobile.Bots
 {
-    [RequireComponent(typeof(MobileHealth), typeof(BotNavigationAgent))]
+    [RequireComponent(typeof(MobileHealth), typeof(BotNavigationIntentController))]
     public sealed class CoverSeekingBot : MonoBehaviour
     {
         [SerializeField] private CoverRegistry registry;
@@ -12,21 +12,20 @@ namespace RenkaiMobile.Bots
         [SerializeField] private float searchRadius = 28f;
 
         private MobileHealth health;
-        private BotNavigationAgent navigation;
+        private BotNavigationIntentController navigationIntent;
         private CoverPoint coverTarget;
         private float nextReassess;
 
         private void Awake()
         {
             health = GetComponent<MobileHealth>();
-            navigation = GetComponent<BotNavigationAgent>();
+            navigationIntent = GetComponent<BotNavigationIntentController>();
             if (registry == null) registry = FindFirstObjectByType<CoverRegistry>();
         }
 
         private void OnDisable()
         {
             coverTarget?.Release(gameObject);
-            navigation?.Stop();
         }
 
         private void Update()
@@ -41,7 +40,7 @@ namespace RenkaiMobile.Bots
             }
 
             if (coverTarget != null)
-                navigation?.SetDestination(coverTarget.transform.position);
+                navigationIntent?.Submit(coverTarget.transform.position, BotNavigationIntentPriority.TakeCover, reassessInterval + 0.2f);
         }
 
         private void SelectCover()
