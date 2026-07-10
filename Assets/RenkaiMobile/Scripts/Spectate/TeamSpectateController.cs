@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using RenkaiMobile.Core;
@@ -12,6 +13,10 @@ namespace RenkaiMobile.Spectate
         [SerializeField] private Vector3 cameraOffset = new Vector3(0f, 1.6f, -3.2f);
         [SerializeField] private float followSharpness = 8f;
 
+        public event Action<FiveVFiveRosterAgent> TargetChanged;
+        public bool IsSpectating { get; private set; }
+        public FiveVFiveRosterAgent Current => CurrentTarget();
+
         private readonly List<FiveVFiveRosterAgent> candidates = new List<FiveVFiveRosterAgent>();
         private int index;
 
@@ -23,6 +28,7 @@ namespace RenkaiMobile.Spectate
 
         private void LateUpdate()
         {
+            if (!IsSpectating) return;
             FiveVFiveRosterAgent target = CurrentTarget();
             if (target == null || spectateCamera == null) return;
 
@@ -40,12 +46,25 @@ namespace RenkaiMobile.Spectate
                 1f - Mathf.Exp(-followSharpness * Time.deltaTime));
         }
 
+        public void BeginSpectating(MobileTeamId team)
+        {
+            spectatedTeam = team;
+            IsSpectating = true;
+            RefreshCandidates();
+            TargetChanged?.Invoke(CurrentTarget());
+        }
+
+        public void EndSpectating()
+        {
+            IsSpectating = false;
+        }
+
         public void RefreshCandidates()
         {
             candidates.Clear();
             FiveVFiveRosterAgent[] all = FindObjectsByType<FiveVFiveRosterAgent>(FindObjectsSortMode.None);
             foreach (FiveVFiveRosterAgent agent in all)
-                if (agent != null && agent.Team == spectatedTeam) candidates.Add(agent);
+                if (agent != null && agent.Team == spectatedTeam && agent.IsAlive) candidates.Add(agent);
             index = Mathf.Clamp(index, 0, Mathf.Max(0, candidates.Count - 1));
         }
 
@@ -54,7 +73,7 @@ namespace RenkaiMobile.Spectate
             RefreshCandidates();
             if (candidates.Count == 0) return;
             index = (index + 1) % candidates.Count;
-            SkipDeadForward();
+            TargetChanged?.Invoke(CurrentTarget());
         }
 
         public void PreviousTarget()
@@ -62,25 +81,14 @@ namespace RenkaiMobile.Spectate
             RefreshCandidates();
             if (candidates.Count == 0) return;
             index = (index - 1 + candidates.Count) % candidates.Count;
-            SkipDeadForward();
+            TargetChanged?.Invoke(CurrentTarget());
         }
 
         private FiveVFiveRosterAgent CurrentTarget()
         {
             if (candidates.Count == 0) return null;
             if (index < 0 || index >= candidates.Count) index = 0;
-            if (!candidates[index].IsAlive) SkipDeadForward();
-            return candidates.Count > 0 ? candidates[index] : null;
-        }
-
-        private void SkipDeadForward()
-        {
-            if (candidates.Count == 0) return;
-            for (int i = 0; i < candidates.Count; i++)
-            {
-                index = (index + 1) % candidates.Count;
-                if (candidates[index] != null && candidates[index].IsAlive) return;
-            }
+            return candidates[index];
         }
     }
 }
