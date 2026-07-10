@@ -7,6 +7,7 @@ namespace RenkaiMobile.Abilities
     public sealed class AkariAbilityKit : MonoBehaviour
     {
         [SerializeField] private AbilityRuntimeController runtime;
+        [SerializeField] private MobileDamagePolicy damagePolicy;
         [SerializeField] private float plasmaRadius = 4.5f;
         [SerializeField] private float plasmaDamage = 36f;
         [SerializeField] private float ignitionDuration = 4f;
@@ -14,6 +15,7 @@ namespace RenkaiMobile.Abilities
         private void Awake()
         {
             if (runtime == null) runtime = GetComponent<AbilityRuntimeController>();
+            if (damagePolicy == null) damagePolicy = FindFirstObjectByType<MobileDamagePolicy>();
         }
 
         public void UsePlasmaBurst()
@@ -52,6 +54,7 @@ namespace RenkaiMobile.Abilities
             {
                 MobileHealth health = hit.GetComponentInParent<MobileHealth>();
                 if (health == null || health.gameObject == gameObject) continue;
+                if (damagePolicy != null && !damagePolicy.CanDamage(gameObject, health.gameObject)) continue;
                 Vector3 direction = (health.transform.position - transform.position).normalized;
                 health.ApplyDamage(new MobileDamageInfo(damage, health.transform.position, direction, gameObject, false));
             }
