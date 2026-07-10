@@ -26,7 +26,7 @@ namespace RenkaiMobile.UI
         private void OnDied(Health victim, DamageInfo damage)
         {
             string victimName = names.TryGetValue(victim, out string value) ? value : victim.name;
-            string attackerName = damage.Source != null ? damage.Source.name : "World";
+            string attackerName = damage.Instigator != null ? damage.Instigator.name : "World";
             AddEntry(attackerName + "  >  " + victimName + (damage.Headshot ? "  HEADSHOT" : ""));
         }
 
