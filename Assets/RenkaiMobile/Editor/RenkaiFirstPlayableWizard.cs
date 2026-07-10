@@ -99,6 +99,13 @@ namespace RenkaiMobile.EditorTools
                 target.name = "TargetDummy_" + (i + 1);
                 target.transform.position = new Vector3(-8f + i * 4f, 1f, 24f);
                 target.AddComponent<Health>();
+
+                var head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                head.name = "HeadshotZone";
+                head.transform.SetParent(target.transform, false);
+                head.transform.localPosition = new Vector3(0f, 0.78f, 0f);
+                head.transform.localScale = Vector3.one * 0.45f;
+                head.AddComponent<HeadshotZone>();
             }
         }
     }
