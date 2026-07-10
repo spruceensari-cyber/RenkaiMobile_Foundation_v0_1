@@ -32,10 +32,16 @@ namespace RenkaiMobile.UI
 
             Vector2 mouse = Vector2.zero;
 #if UNITY_EDITOR || UNITY_STANDALONE
-            mouse = new Vector2(Input.mousePosition.x / Mathf.Max(1f, Screen.width), Input.mousePosition.y / Mathf.Max(1f, Screen.height));
+            Vector3 mousePosition = UnityEngine.Input.mousePosition;
+            mouse = new Vector2(
+                mousePosition.x / Mathf.Max(1f, Screen.width),
+                mousePosition.y / Mathf.Max(1f, Screen.height));
             mouse = (mouse - Vector2.one * 0.5f) * 2f;
 #endif
-            rect.anchoredPosition = Vector2.Lerp(rect.anchoredPosition, basePosition + mouse * parallaxAmount, 8f * Time.unscaledDeltaTime);
+            rect.anchoredPosition = Vector2.Lerp(
+                rect.anchoredPosition,
+                basePosition + mouse * parallaxAmount,
+                8f * Time.unscaledDeltaTime);
 
             if (glowGraphics == null) return;
             Color color = Color.Lerp(baseGlow, pulseGlow, pulse * 0.25f);
