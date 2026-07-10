@@ -7,6 +7,7 @@ namespace RenkaiMobile.Weapons
     {
         [SerializeField] private MobileMeleeProfile profile;
         [SerializeField] private Transform attackOrigin;
+        [SerializeField] private MobileDamagePolicy damagePolicy;
         [SerializeField] private LayerMask hitMask = ~0;
 
         public string DisplayName => profile != null ? profile.displayName : "Hikari Blade";
@@ -14,15 +15,13 @@ namespace RenkaiMobile.Weapons
 
         private float nextAttackTime;
 
-        public bool TrySlash()
+        private void Awake()
         {
-            return TryAttack(false);
+            if (damagePolicy == null) damagePolicy = FindFirstObjectByType<MobileDamagePolicy>();
         }
 
-        public bool TryHeavySlash()
-        {
-            return TryAttack(true);
-        }
+        public bool TrySlash() => TryAttack(false);
+        public bool TryHeavySlash() => TryAttack(true);
 
         private bool TryAttack(bool heavy)
         {
@@ -40,6 +39,7 @@ namespace RenkaiMobile.Weapons
             {
                 MobileHealth health = hit.GetComponentInParent<MobileHealth>();
                 if (health == null || health.gameObject == gameObject) continue;
+                if (damagePolicy != null && !damagePolicy.CanDamage(gameObject, health.gameObject)) continue;
                 Vector3 direction = (health.transform.position - origin).normalized;
                 health.ApplyDamage(new MobileDamageInfo(damage, hit.ClosestPoint(origin), direction, gameObject, false));
                 break;
