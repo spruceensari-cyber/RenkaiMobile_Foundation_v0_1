@@ -1,10 +1,9 @@
 using System.Collections;
 using UnityEngine;
-using Renkai.Combat;
 
 namespace RenkaiMobile.Combat
 {
-    [RequireComponent(typeof(Health))]
+    [RequireComponent(typeof(Renkai.Combat.Health))]
     public sealed class TargetDummyFeedback : MonoBehaviour
     {
         [SerializeField] private Renderer[] renderers;
@@ -12,22 +11,27 @@ namespace RenkaiMobile.Combat
         [SerializeField] private float respawnDelay = 2f;
         [SerializeField] private Color flashColor = Color.white;
 
-        private Health health;
+        private Renkai.Combat.Health health;
         private Color[] baseColors;
         private Collider[] colliders;
 
         private void Awake()
         {
-            health = GetComponent<Health>();
-            if (renderers == null || renderers.Length == 0) renderers = GetComponentsInChildren<Renderer>(true);
+            health = GetComponent<Renkai.Combat.Health>();
+            if (renderers == null || renderers.Length == 0)
+                renderers = GetComponentsInChildren<Renderer>(true);
             colliders = GetComponentsInChildren<Collider>(true);
             baseColors = new Color[renderers.Length];
             for (int i = 0; i < renderers.Length; i++)
-                baseColors[i] = renderers[i].material.HasProperty("_BaseColor") ? renderers[i].material.GetColor("_BaseColor") : renderers[i].material.color;
+                baseColors[i] = renderers[i].material.HasProperty("_BaseColor")
+                    ? renderers[i].material.GetColor("_BaseColor")
+                    : renderers[i].material.color;
         }
 
         private void OnEnable()
         {
+            if (health == null) health = GetComponent<Renkai.Combat.Health>();
+            if (health == null) return;
             health.Changed += OnHealthChanged;
             health.Died += OnDied;
         }
@@ -52,7 +56,7 @@ namespace RenkaiMobile.Combat
             RestoreColors();
         }
 
-        private void OnDied(DamageInfo info)
+        private void OnDied(Renkai.Combat.DamageInfo info)
         {
             StartCoroutine(RespawnRoutine());
         }
