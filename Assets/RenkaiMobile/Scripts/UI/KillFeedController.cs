@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Renkai.Combat;
+using RenkaiMobile.Combat;
 
 namespace RenkaiMobile.UI
 {
@@ -10,20 +10,21 @@ namespace RenkaiMobile.UI
     {
         [SerializeField] private RectTransform feedRoot;
         [SerializeField] private float entryLifetime = 4.5f;
-        private readonly Dictionary<Health, string> names = new Dictionary<Health, string>();
+        private readonly Dictionary<MobileHealth, string> names = new Dictionary<MobileHealth, string>();
 
         private void Start()
         {
-            Health[] all = FindObjectsByType<Health>(FindObjectsSortMode.None);
-            foreach (Health health in all)
+            MobileHealth[] all = FindObjectsByType<MobileHealth>(FindObjectsSortMode.None);
+            foreach (MobileHealth health in all)
             {
                 if (health == null) continue;
                 names[health] = health.gameObject.name;
-                health.Died += damage => OnDied(health, damage);
+                MobileHealth captured = health;
+                health.Died += damage => OnDied(captured, damage);
             }
         }
 
-        private void OnDied(Health victim, DamageInfo damage)
+        private void OnDied(MobileHealth victim, MobileDamageInfo damage)
         {
             string victimName = names.TryGetValue(victim, out string value) ? value : victim.name;
             string attackerName = damage.Instigator != null ? damage.Instigator.name : "World";

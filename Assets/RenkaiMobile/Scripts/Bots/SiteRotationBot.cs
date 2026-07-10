@@ -1,19 +1,19 @@
 using UnityEngine;
-using Renkai.Core;
-using Renkai.Rounds;
+using RenkaiMobile.Core;
+using RenkaiMobile.Rounds;
 using RenkaiMobile.Objective;
 
 namespace RenkaiMobile.Bots
 {
-    [RequireComponent(typeof(TeamMember))]
+    [RequireComponent(typeof(MobileTeamMember))]
     public sealed class SiteRotationBot : MonoBehaviour
     {
         [SerializeField] private float moveSpeed = 2.4f;
         [SerializeField] private float stopDistance = 2.2f;
         [SerializeField] private float rotateDecisionSeconds = 5f;
 
-        private TeamMember team;
-        private RoundManager roundManager;
+        private MobileTeamMember team;
+        private MobileRoundManager roundManager;
         private SpiritCoreRoundObjective objective;
         private SpiritCoreSiteZone[] sites;
         private Transform destination;
@@ -21,15 +21,15 @@ namespace RenkaiMobile.Bots
 
         private void Awake()
         {
-            team = GetComponent<TeamMember>();
-            roundManager = FindFirstObjectByType<RoundManager>();
+            team = GetComponent<MobileTeamMember>();
+            roundManager = FindFirstObjectByType<MobileRoundManager>();
             objective = FindFirstObjectByType<SpiritCoreRoundObjective>();
             sites = FindObjectsByType<SpiritCoreSiteZone>(FindObjectsSortMode.None);
         }
 
         private void Update()
         {
-            if (roundManager == null || roundManager.Phase != RoundPhase.Live) return;
+            if (roundManager == null || roundManager.Phase != MobileRoundPhase.Live) return;
             if (sites == null || sites.Length == 0) return;
 
             if (destination == null || Time.time >= nextDecision)
@@ -56,10 +56,8 @@ namespace RenkaiMobile.Bots
         {
             if (sites.Length == 0) return null;
 
-            if (team != null && team.Team == TeamId.Defenders && objective != null && objective.IsPlanted)
-            {
+            if (team != null && team.Team == MobileTeamId.Defenders && objective != null && objective.IsPlanted)
                 return FindNearestSite();
-            }
 
             int index = Mathf.Abs(gameObject.GetInstanceID()) % sites.Length;
             if (Random.value > 0.6f) index = Random.Range(0, sites.Length);
