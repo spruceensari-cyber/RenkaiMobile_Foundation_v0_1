@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -14,6 +16,7 @@ namespace RenkaiMobile.EditorTools
 
         private static readonly string[] GeneratedRootsToRebuild =
         {
+            "RenkaiMobile_Game",
             "Player",
             "Renkai_5v5_Match",
             "Zodiac_Objective",
@@ -62,7 +65,7 @@ namespace RenkaiMobile.EditorTools
                 RemoveRoots(LegacyPrototypeRoots, removed);
 
                 EditorUtility.DisplayProgressBar("Renkai Mobile Unified Build", "Building complete mobile adaptation", 0.22f);
-                RenkaiOneClickFullBuildWizard.BuildCompleteGame();
+                RunExistingBuilderSilently();
 
                 EditorUtility.DisplayProgressBar("Renkai Mobile Unified Build", "Applying unified Renkai identity", 0.86f);
                 RenkaiMobileIdentityCatalog catalog = EnsureIdentityCatalog();
@@ -94,10 +97,55 @@ namespace RenkaiMobile.EditorTools
                     "Assets/Renkai was not modified by this builder." + cleanup,
                     "OK");
             }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+                EditorUtility.DisplayDialog("RENKAI MOBILE UNIFIED BUILD", "Build stopped.\n\n" + ex.Message + "\n\nCheck Console for details.", "OK");
+            }
             finally
             {
                 EditorUtility.ClearProgressBar();
             }
+        }
+
+        private static void RunExistingBuilderSilently()
+        {
+            InvokeBuilder("EnsureCameraAndLighting");
+
+            GameObject matchRoot = InvokeBuilder<GameObject>("EnsureObject", "Renkai_5v5_Match");
+            Component roundManager = InvokeBuilder<Component>("EnsureComponent", matchRoot, "RenkaiMobile.Rounds.MobileRoundManager");
+            Component roundDirector = InvokeBuilder<Component>("EnsureComponent", matchRoot, "RenkaiMobile.Teams.FiveVFiveRoundDirector");
+            InvokeBuilder("Bind", roundDirector, "roundManager", roundManager);
+
+            GameObject player = InvokeBuilder<GameObject>("BuildPlayer", roundManager);
+            InvokeBuilder("BuildBots");
+            Component zodiacObjective = InvokeBuilder<Component>("BuildZodiac", roundManager);
+            InvokeBuilder("BuildKagamiDistrict");
+            GameObject services = InvokeBuilder<GameObject>("BuildServices");
+            InvokeBuilder("BuildPlayerCombat", player, zodiacObjective, services);
+            InvokeBuilder("BuildHud", roundManager, zodiacObjective);
+            InvokeBuilder("BuildPresentationShells");
+            InvokeBuilder("ConfigureRosterIdentities");
+
+            Component spawnRegistry = InvokeBuilder<Component>("FindSceneComponent", "RenkaiMobile.Spawning.MobileSpawnRegistry");
+            Component coverRegistry = InvokeBuilder<Component>("FindSceneComponent", "RenkaiMobile.Bots.CoverRegistry");
+            Component routeGraph = InvokeBuilder<Component>("FindSceneComponent", "RenkaiMobile.Map.KagamiRouteGraph");
+            InvokeBuilder("InvokeNoArgs", spawnRegistry, "Refresh");
+            InvokeBuilder("InvokeNoArgs", coverRegistry, "Refresh");
+            InvokeBuilder("InvokeNoArgs", routeGraph, "RebuildLookup");
+        }
+
+        private static object InvokeBuilder(string methodName, params object[] args)
+        {
+            MethodInfo method = typeof(RenkaiOneClickFullBuildWizard).GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
+            if (method == null)
+                throw new MissingMethodException(typeof(RenkaiOneClickFullBuildWizard).FullName, methodName);
+            return method.Invoke(null, args);
+        }
+
+        private static T InvokeBuilder<T>(string methodName, params object[] args) where T : class
+        {
+            return InvokeBuilder(methodName, args) as T;
         }
 
         private static void RemoveRoots(string[] names, List<string> removed)
@@ -107,7 +155,7 @@ namespace RenkaiMobile.EditorTools
                 GameObject go = GameObject.Find(name);
                 if (go == null) continue;
                 removed.Add(name);
-                Object.DestroyImmediate(go);
+                UnityEngine.Object.DestroyImmediate(go);
             }
         }
 
