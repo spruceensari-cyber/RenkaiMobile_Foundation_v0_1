@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c0177eba6b735645b9ef8453f6e704a, type: 3}
+  m_Name: PistolProfile_ZeroPulse
+  m_EditorClassIdentifier: Assembly-CSharp::RenkaiMobile.Weapons.MobilePistolProfile
+  weaponId: zero_pulse
+  displayName: Zero Pulse
+  bodyDamage: 30
+  headDamage: 90
+  fireInterval: 0.18
+  range: 55
+  magazineSize: 12
+  reloadSeconds: 1.45
+  hipSpreadDegrees: 0.5
+  adsSpreadMultiplier: 0.35

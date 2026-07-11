@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 795eaeab2a0eea540b6006f3e6de956d, type: 3}
+  m_Name: AimProfile_Kitsune
+  m_EditorClassIdentifier: Assembly-CSharp::RenkaiMobile.Combat.MobileAimProfile
+  hipFov: 72
+  adsFov: 54
+  transitionInSeconds: 0.16
+  transitionOutSeconds: 0.12
+  adsSensitivityMultiplier: 0.62
+  adsRecoilMultiplier: 0.72
+  adsSpreadMultiplier: 0.45
+  adsSwayMultiplier: 0.35
+  hipLocalPosition: {x: 0.18, y: -0.16, z: 0.42}
+  adsLocalPosition: {x: 0, y: -0.09, z: 0.3}
+  hipLocalEuler: {x: 0, y: 0, z: 0}
+  adsLocalEuler: {x: 0, y: 0, z: 0}
